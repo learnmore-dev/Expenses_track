@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+
+{% block title %}Register Account | LMT Portal{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--accent-cyan); display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; box-shadow: 0 0 20px rgba(6, 182, 212, 0.3); margin-bottom: 1rem;">
+                <i class="fa-solid fa-user-plus"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem;">Create Account</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Join LearnMore Technologies Student Portal</p>
+        </div>
+
+        <form method="post" action="{% url 'register' %}">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label">{{ field.label }}</label>
+                    <input type="{{ field.field.widget.input_type|default:'text' }}" name="{{ field.name }}" class="form-input" placeholder="{{ field.label }}" {% if field.field.required %}required{% endif %}>
+                    {% if field.errors %}
+                        <div style="color: #fda4af; font-size: 0.8rem; margin-top: 4px;">{{ field.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn-lmt btn-emerald" style="width: 100%; margin-top: 1rem; padding: 0.8rem;">
+                Complete Registration <i class="fa-solid fa-check me-1"></i>
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-glass); font-size: 0.88rem; color: var(--text-secondary);">
+            Already registered? <a href="{% url 'login' %}" style="font-weight: 600;">Sign In</a>
+        </div>
+    </div>
+</div>
+{% endblock %}

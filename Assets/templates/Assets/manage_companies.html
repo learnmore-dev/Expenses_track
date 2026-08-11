@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Hiring Companies | LMT Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 800px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'placements' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Placement Directory
+        </a>
+    </div>
+
+    <!-- Add New Company Form -->
+    <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: var(--shadow-sm);">
+                <i class="fa-solid fa-building-circle-plus"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.4rem; margin-bottom: 0.25rem; color: var(--navy-900);">Add New Hiring Company</h2>
+                <p style="color: var(--text-secondary); font-size: 0.88rem;">Add partner companies to placement filters & dropdowns</p>
+            </div>
+        </div>
+
+        <form method="post" style="display: flex; gap: 12px; align-items: center;">
+            {% csrf_token %}
+            <input type="text" name="name" class="form-input" placeholder="Enter Company Name (e.g. TCS, Infosys, Wipro, Google)" required style="flex: 1;">
+            <button type="submit" class="btn-lmt btn-primary-gradient" style="padding: 0.75rem 1.4rem;">
+                <i class="fa-solid fa-plus me-1"></i> Add Company
+            </button>
+        </form>
+    </div>
+
+    <!-- Companies List Directory -->
+    <div class="glass-panel" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-light); background: #f8fafc;">
+            <h3 style="font-size: 1.1rem; color: var(--navy-900); font-weight: 700;">
+                <i class="fa-solid fa-building me-1" style="color: var(--indigo-600);"></i> Registered Partner Companies ({{ companies|length }})
+            </h3>
+        </div>
+
+        <div class="table-container" style="border: none;">
+            <table class="lmt-table">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">#</th>
+                        <th>Company Name</th>
+                        <th>Associated Candidates</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for comp in companies %}
+                        <tr>
+                            <td style="color: var(--text-muted); font-weight: 600;">{{ forloop.counter }}</td>
+                            <td style="font-weight: 700; color: var(--navy-900); font-size: 1rem;">
+                                <i class="fa-solid fa-building me-2" style="color: var(--indigo-600);"></i> {{ comp.name }}
+                            </td>
+                            <td>
+                                <span class="badge-status badge-info">
+                                    {{ comp.students.count }} Candidate{{ comp.students.count|pluralize }}
+                                </span>
+                            </td>
+                            <td style="text-align: right;">
+                                <form method="post" action="{% url 'delete_company' comp.pk %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete company \'{{ comp.name }}\'?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-lmt btn-danger-glass" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                                        <i class="fa-solid fa-trash me-1"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="4" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                <i class="fa-solid fa-building-circle-xmark" style="font-size: 2.5rem; margin-bottom: 1rem; display: block; color: var(--text-light);"></i>
+                                No hiring partner companies added yet. Type a company name above to add one.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,131 @@
+{% extends 'base.html' %}
+
+{% block title %}Candidate Placement & Interview Details - {{ student_name }} | LMT Portal{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem; flex-wrap: wrap; gap: 1rem;">
+    <a href="{% url 'placements' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.45rem 1rem;">
+        <i class="fa-solid fa-arrow-left me-1"></i> Back to Placement Directory
+    </a>
+
+    {% if request.session.is_faculty and is_db and student_id %}
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'edit_student' student_id %}" class="btn-lmt btn-secondary-glass">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Candidate Details
+            </a>
+            <a href="{% url 'delete_student' student_id %}" class="btn-lmt btn-danger-glass">
+                <i class="fa-solid fa-trash"></i> Delete Candidate
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Profile Card Header -->
+<div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+    <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1.5rem;">
+        <div style="display: flex; align-items: center; gap: 1.5rem; flex-wrap: wrap;">
+            <div style="width: 72px; height: 72px; border-radius: 18px; background: var(--navy-900); color: white; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; font-weight: 800; box-shadow: var(--shadow-sm);">
+                {{ student_name|slice:":1"|upper }}
+            </div>
+
+            <div>
+                <h1 style="font-size: 1.85rem; margin-bottom: 0.35rem; color: var(--navy-900);">{{ student_name }}</h1>
+                <div style="display: flex; gap: 1.25rem; flex-wrap: wrap; color: var(--text-secondary); font-size: 0.925rem;">
+                    <span><i class="fa-solid fa-envelope me-1" style="color: var(--indigo-600);"></i> {{ email_id }}</span>
+                    <span><i class="fa-solid fa-phone me-1" style="color: var(--emerald-600);"></i> {{ contact_number }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Summary Placement Badges -->
+        <div style="display: flex; gap: 12px; flex-wrap: wrap;">
+            <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 1.25rem; text-align: center;">
+                <div style="font-size: 1.35rem; font-weight: 800; color: var(--indigo-600);">{{ total_interviews|default:student_records|length }}</div>
+                <div style="font-size: 0.775rem; color: var(--text-muted); font-weight: 600;">Interviews Attended</div>
+            </div>
+
+            <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 0.85rem 1.25rem; text-align: center;">
+                <div style="font-size: 1.35rem; font-weight: 800; color: var(--emerald-600);">{{ placed_companies|length }}</div>
+                <div style="font-size: 0.775rem; color: var(--text-muted); font-weight: 600;">Companies Placed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Records Table for All Interviewed Companies -->
+<h2 style="font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 8px; color: var(--navy-900);">
+    <i class="fa-solid fa-building-circle-check" style="color: var(--indigo-600);"></i> All Companies Interviewed At & Round Details
+</h2>
+
+<div class="glass-panel" style="padding: 0; overflow: hidden;">
+    <div class="table-container" style="border: none;">
+        <table class="lmt-table">
+            <thead>
+                <tr>
+                    <th>Company Name</th>
+                    <th>Qualification</th>
+                    <th>Graduation %</th>
+                    <th>Passout</th>
+                    <th>Course Undergone</th>
+                    <th>Attended Interview</th>
+                    <th>Round 1</th>
+                    <th>Round 2</th>
+                    <th>Final Selection Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for record in student_records %}
+                    <tr>
+                        <td style="font-weight: 700; color: var(--indigo-600); font-size: 0.95rem;">
+                            <i class="fa-solid fa-building me-1"></i>
+                            {% if is_db %}{{ record.company.name|default:"-" }}{% else %}{{ record.company }}{% endif %}
+                        </td>
+                        <td>{{ record.highest_qualification|default:"-" }}</td>
+                        <td>{{ record.graduating_percentage|default:"-" }}%</td>
+                        <td>{{ record.pass_out_year|default:"-" }}</td>
+                        <td>
+                            {{ record.course_undergone_in_learnmore_technologies|default:"-" }}
+                        </td>
+                        <td>
+                            {% if record.attended_interview %}
+                                <span class="badge-status badge-success"><i class="fa-solid fa-check"></i> Yes</span>
+                            {% else %}
+                                <span class="badge-status badge-warning"><i class="fa-solid fa-xmark"></i> No</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.first_round %}
+                                <span class="badge-status badge-success"><i class="fa-solid fa-check"></i> Cleared</span>
+                            {% else %}
+                                <span class="badge-status badge-warning"><i class="fa-solid fa-clock"></i> Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.second_round %}
+                                <span class="badge-status badge-success"><i class="fa-solid fa-check"></i> Cleared</span>
+                            {% else %}
+                                <span class="badge-status badge-warning"><i class="fa-solid fa-clock"></i> Pending</span>
+                            {% endif %}
+                        </td>
+                        <td>
+                            {% if record.final_round %}
+                                <span class="badge-status badge-purple" style="font-size: 0.825rem;">
+                                    <i class="fa-solid fa-trophy"></i> Selected at {% if is_db %}{{ record.company.name }}{% else %}{{ record.company }}{% endif %}
+                                </span>
+                            {% else %}
+                                <span class="badge-status badge-warning"><i class="fa-solid fa-clock"></i> In Progress</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 2.5rem; color: var(--text-muted);">
+                            No detailed placement records found for this candidate.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

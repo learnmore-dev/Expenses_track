@@ -1,0 +1,130 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create Employee Account | Admin Control Panel{% endblock %}
+
+{% block content %}
+<style>
+    .lmt-user-form-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+        padding: 2.25rem 2.5rem;
+    }
+
+    .lmt-user-form-group {
+        margin-bottom: 1.35rem;
+    }
+
+    .lmt-user-form-group label {
+        display: block !important;
+        font-weight: 700 !important;
+        font-size: 0.9rem !important;
+        margin-bottom: 0.45rem !important;
+        color: #0f172a !important;
+    }
+
+    .lmt-user-form-group input[type="text"],
+    .lmt-user-form-group input[type="password"],
+    .lmt-user-form-group select {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        background-color: #ffffff !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.95rem !important;
+        font-family: inherit !important;
+        color: #0f172a !important;
+        outline: none !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .lmt-user-form-group select {
+        appearance: auto !important;
+        -webkit-appearance: auto !important;
+        cursor: pointer !important;
+    }
+
+    .lmt-user-form-group input:focus,
+    .lmt-user-form-group select:focus {
+        border-color: #4f46e5 !important;
+        box-shadow: 0 0 0 3.5px rgba(79, 70, 229, 0.18) !important;
+        background-color: #ffffff !important;
+    }
+</style>
+
+<div style="max-width: 680px; margin: 0 auto;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+        <div>
+            <h1 style="font-size: 1.75rem; font-weight: 800; color: var(--navy-900); margin-bottom: 0.25rem;">
+                <i class="fa-solid fa-user-plus" style="color: var(--indigo-600);"></i> Create Employee Account
+            </h1>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
+                Assign login credentials, employee ID, department, and dynamic role access permissions.
+            </p>
+        </div>
+        <a href="{% url 'manage_users' %}" class="btn-lmt btn-secondary-glass">
+            ← Back to Accounts
+        </a>
+    </div>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="alert-custom alert-{{ message.tags }}" style="margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-circle-info me-2"></i> {{ message }}
+            </div>
+        {% endfor %}
+    {% endif %}
+
+    <div class="lmt-user-form-card">
+        <form method="POST">
+            {% csrf_token %}
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 0.25rem;">
+                <div class="lmt-user-form-group">
+                    <label><i class="fa-solid fa-user me-1" style="color: var(--indigo-600);"></i> Username <span style="color: var(--rose-600);">*</span></label>
+                    <input type="text" name="username" placeholder="e.g. rahul_hr or dev_priya" required>
+                </div>
+
+                <div class="lmt-user-form-group">
+                    <label><i class="fa-solid fa-key me-1" style="color: var(--indigo-600);"></i> Login Password <span style="color: var(--rose-600);">*</span></label>
+                    <input type="password" name="password" placeholder="Enter secure password" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; margin-bottom: 0.25rem;">
+                <div class="lmt-user-form-group">
+                    <label><i class="fa-solid fa-user-shield me-1" style="color: var(--indigo-600);"></i> Employee Role Access <span style="color: var(--rose-600);">*</span></label>
+                    <select name="role" required>
+                        {% for r in roles %}
+                            <option value="{{ r.name }}" {% if r.name == 'Intern' %}selected{% endif %}>{{ r.name }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="lmt-user-form-group">
+                    <label><i class="fa-solid fa-id-card me-1" style="color: var(--indigo-600);"></i> Employee ID (Optional)</label>
+                    <input type="text" name="employee_id" placeholder="e.g. LMT-HR-01 or LMT-DEV-04">
+                </div>
+            </div>
+
+            <div class="lmt-user-form-group" style="margin-bottom: 1.75rem;">
+                <label><i class="fa-solid fa-building-user me-1" style="color: var(--indigo-600);"></i> Department (Optional)</label>
+                <input type="text" name="department" placeholder="e.g. Recruitment, Full-Stack Training, Software Dev">
+            </div>
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.25rem; border-top: 1px solid var(--border-light);">
+                <a href="{% url 'manage_users' %}" class="btn-lmt btn-secondary-glass">Cancel</a>
+                <button type="submit" class="btn-lmt btn-primary-gradient" style="padding: 0.7rem 1.75rem;">
+                    <i class="fa-solid fa-check me-1"></i> Create Employee Account
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

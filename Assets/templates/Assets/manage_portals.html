@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Company Web Portals | LMT Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'home' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Add New Portal Form -->
+    <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: var(--shadow-sm);">
+                <i class="fa-solid fa-globe"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.4rem; margin-bottom: 0.25rem; color: var(--navy-900);">Add Company Website Portal</h2>
+                <p style="color: var(--text-secondary); font-size: 0.88rem;">Add links to company websites & external portals to navbar dropdown</p>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Portal Title</label>
+                    <input type="text" name="title" class="form-input" placeholder="e.g. LearnMore Official Website" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Website URL</label>
+                    <input type="url" name="url" class="form-input" placeholder="https://example.com" required>
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label">Short Description (Optional)</label>
+                <input type="text" name="description" class="form-input" placeholder="e.g. Official company course catalog & info">
+            </div>
+
+            <button type="submit" class="btn-lmt btn-primary-gradient" style="padding: 0.75rem 1.4rem;">
+                <i class="fa-solid fa-plus me-1"></i> Add Portal Link
+            </button>
+        </form>
+    </div>
+
+    <!-- Portals List Directory -->
+    <div class="glass-panel" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-light); background: #f8fafc;">
+            <h3 style="font-size: 1.1rem; color: var(--navy-900); font-weight: 700;">
+                <i class="fa-solid fa-link me-1" style="color: var(--indigo-600);"></i> Company Web Portals Directory ({{ portals|length }})
+            </h3>
+        </div>
+
+        <div class="table-container" style="border: none;">
+            <table class="lmt-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Portal Name</th>
+                        <th>URL Link</th>
+                        <th>Description</th>
+                        <th style="text-align: right;">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for portal in portals %}
+                        <tr>
+                            <td style="color: var(--text-muted); font-weight: 600;">{{ forloop.counter }}</td>
+                            <td style="font-weight: 700; color: var(--navy-900);">
+                                <i class="fa-solid fa-globe me-2" style="color: var(--indigo-600);"></i> {{ portal.title }}
+                            </td>
+                            <td>
+                                <a href="{{ portal.url }}" target="_blank" style="color: var(--indigo-600); font-weight: 600; text-decoration: underline; font-size: 0.88rem;">
+                                    {{ portal.url|truncatechars:35 }} <i class="fa-solid fa-arrow-up-right-from-square" style="font-size: 0.75rem;"></i>
+                                </a>
+                            </td>
+                            <td style="color: var(--text-secondary); font-size: 0.88rem;">
+                                {{ portal.description|default:"-" }}
+                            </td>
+                            <td style="text-align: right;">
+                                <a href="{{ portal.url }}" target="_blank" class="btn-lmt btn-emerald" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; margin-right: 4px;">
+                                    Open Link <i class="fa-solid fa-up-right-from-square" style="font-size: 0.7rem;"></i>
+                                </a>
+                                {% if request.session.is_faculty %}
+                                    <form method="post" action="{% url 'delete_portal' portal.pk %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete portal \'{{ portal.title }}\'?');">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-lmt btn-danger-glass" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                                            <i class="fa-solid fa-trash me-1"></i> Delete
+                                        </button>
+                                    </form>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                <i class="fa-solid fa-globe" style="font-size: 2.5rem; margin-bottom: 1rem; display: block; color: var(--text-light);"></i>
+                                No company web portals added yet. Add one above.
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

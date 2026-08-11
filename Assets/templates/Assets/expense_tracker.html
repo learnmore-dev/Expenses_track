@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Log Expense Entry | LMT Portal{% endblock %}
+
+{% block content %}
+<style>
+    .lmt-expense-form-card {
+        background: #ffffff;
+        border-radius: 16px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
+        padding: 2.25rem 2.5rem;
+    }
+
+    .lmt-form-field-group {
+        margin-bottom: 1.35rem;
+    }
+
+    .lmt-form-field-group label {
+        display: block;
+        font-weight: 700;
+        font-size: 0.9rem;
+        margin-bottom: 0.45rem;
+        color: #0f172a;
+    }
+
+    .lmt-form-field-group input[type="text"],
+    .lmt-form-field-group input[type="number"],
+    .lmt-form-field-group input[type="date"],
+    .lmt-form-field-group input[type="time"],
+    .lmt-form-field-group select,
+    .lmt-form-field-group textarea {
+        width: 100% !important;
+        max-width: 100% !important;
+        display: block !important;
+        box-sizing: border-box !important;
+        background-color: #ffffff !important;
+        border: 1.5px solid #cbd5e1 !important;
+        border-radius: 10px !important;
+        padding: 0.75rem 1rem !important;
+        font-size: 0.95rem !important;
+        font-family: inherit !important;
+        color: #0f172a !important;
+        outline: none !important;
+        box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.04) !important;
+        transition: all 0.2s ease !important;
+    }
+
+    .lmt-form-field-group select {
+        appearance: auto !important;
+        -webkit-appearance: auto !important;
+        cursor: pointer !important;
+    }
+
+    .lmt-form-field-group input:focus,
+    .lmt-form-field-group select:focus,
+    .lmt-form-field-group textarea:focus {
+        border-color: #4f46e5 !important;
+        box-shadow: 0 0 0 3.5px rgba(79, 70, 229, 0.18) !important;
+        background-color: #ffffff !important;
+    }
+</style>
+
+<div style="max-width: 620px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'expense_registered' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-arrow-left me-1"></i> View Expense History
+        </a>
+    </div>
+
+    <div class="lmt-expense-form-card">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem; padding-bottom: 1.25rem; border-bottom: 1px solid var(--border-light);">
+            <div style="width: 52px; height: 52px; border-radius: 16px; background: var(--blue-600); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; box-shadow: var(--shadow-sm);">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.5rem; font-weight: 800; color: var(--navy-900); margin-bottom: 0.25rem;">
+                    Log Operational Expense
+                </h2>
+                <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
+                    Select employee account, record purchases & reimbursement logs.
+                </p>
+            </div>
+        </div>
+
+        {% if success %}
+            <div class="alert-custom alert-success" style="margin-bottom: 1.5rem;">
+                <i class="fa-solid fa-circle-check me-2"></i> Expense entry logged successfully!
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="lmt-form-field-group">
+                    <label>
+                        {% if field.name == 'name' %}
+                            <i class="fa-solid fa-user-check me-1" style="color: var(--indigo-600);"></i> Select Employee / Account <span style="color: var(--rose-600);">*</span>
+                        {% elif field.name == 'item' %}
+                            <i class="fa-solid fa-receipt me-1" style="color: var(--indigo-600);"></i> Item Purchased / Description
+                        {% elif field.name == 'date' %}
+                            <i class="fa-solid fa-calendar-day me-1" style="color: var(--indigo-600);"></i> Expense Date
+                        {% elif field.name == 'time' %}
+                            <i class="fa-solid fa-clock me-1" style="color: var(--indigo-600);"></i> Expense Time
+                        {% elif field.name == 'amount' %}
+                            <i class="fa-solid fa-indian-rupee-sign me-1" style="color: var(--emerald-600);"></i> Amount (₹)
+                        {% elif field.name == 'payment_mode' %}
+                            <i class="fa-solid fa-credit-card me-1" style="color: var(--indigo-600);"></i> Payment Method
+                        {% elif field.name == 'reimbursed' %}
+                            <i class="fa-solid fa-hand-holding-dollar me-1" style="color: var(--indigo-600);"></i> Reimbursed (Paid back)
+                        {% else %}
+                            {{ field.label }}
+                        {% endif %}
+                    </label>
+
+                    {{ field }}
+
+                    {% if field.errors %}
+                        <div style="color: var(--rose-600); font-size: 0.8rem; margin-top: 4px; font-weight: 600;">
+                            <i class="fa-solid fa-circle-exclamation me-1"></i> {{ field.errors.0 }}
+                        </div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <div style="display: flex; gap: 1rem; justify-content: flex-end; padding-top: 1.25rem; border-top: 1px solid var(--border-light); margin-top: 1.5rem;">
+                <a href="{% url 'expense_registered' %}" class="btn-lmt btn-secondary-glass">Cancel</a>
+                <button type="submit" class="btn-lmt btn-primary-gradient" style="padding: 0.7rem 1.75rem;">
+                    <i class="fa-solid fa-check me-1"></i> Save Expense Entry
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

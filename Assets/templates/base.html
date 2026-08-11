@@ -1,0 +1,202 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}LMT Placement & Management WebApp{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Theme CSS -->
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+
+    <!-- Glassmorphic Navbar -->
+    <nav class="lmt-navbar">
+        <a href="{% url 'home' %}" class="brand-logo">
+            <div class="brand-icon">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <span>LMT <span style="background: var(--primary-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">Portal</span></span>
+        </a>
+
+        <div class="nav-links">
+            <a href="{% url 'home' %}" class="nav-item {% if request.resolver_match.url_name == 'home' %}active{% endif %}">
+                <i class="fa-solid fa-house me-1"></i> Home
+            </a>
+
+            {% if request.user.is_authenticated %}
+                <a href="{% url 'placements' %}" class="nav-item {% if request.resolver_match.url_name == 'placements' %}active{% endif %}">
+                    <i class="fa-solid fa-briefcase me-1"></i> Placements
+                </a>
+
+                <a href="{% url 'registered_assets' %}" class="nav-item {% if request.resolver_match.url_name == 'registered_assets' %}active{% endif %}">
+                    <i class="fa-solid fa-boxes-stacked me-1"></i> Assets
+                </a>
+
+                <a href="{% url 'expense_registered' %}" class="nav-item {% if request.resolver_match.url_name == 'expense_registered' %}active{% endif %}">
+                    <i class="fa-solid fa-receipt me-1"></i> Expense Logs
+                </a>
+
+                {% if request.session.is_faculty %}
+                    <a href="{% url 'admin_dashboard' %}" class="nav-item {% if request.resolver_match.url_name == 'admin_dashboard' %}active{% endif %}" style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color: white !important; font-weight: 700; border-radius: 8px; padding: 0.35rem 0.75rem; margin-left: 2px; white-space: nowrap; display: inline-flex; align-items: center;">
+                        <i class="fa-solid fa-gauge-high me-1"></i> Admin Dashboard
+                    </a>
+                {% endif %}
+
+                <!-- Portals Dropdown (Company Websites) -->
+                <div class="nav-dropdown">
+                    <a href="#" class="nav-item {% if request.resolver_match.url_name == 'manage_portals' %}active{% endif %}">
+                        <i class="fa-solid fa-globe me-1"></i> Portals <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; margin-left: 4px;"></i>
+                    </a>
+                    <div class="dropdown-menu-custom" style="width: 270px;">
+                        {% for plink in nav_portal_links %}
+                            <a href="{{ plink.url }}" target="_blank" class="dropdown-item-custom">
+                                <i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--indigo-600);"></i> {{ plink.title }}
+                            </a>
+                        {% empty %}
+                            <a href="https://learnmoretechnologies.in/" target="_blank" class="dropdown-item-custom">
+                                <i class="fa-solid fa-arrow-up-right-from-square" style="color: var(--indigo-600);"></i> LearnMore Official Website
+                            </a>
+                        {% endfor %}
+
+                        {% if request.session.is_faculty %}
+                            <a href="{% url 'manage_portals' %}" class="dropdown-item-custom" style="border-top: 1px solid var(--border-light); margin-top: 4px; padding-top: 8px; color: var(--indigo-600); font-weight: 700;">
+                                <i class="fa-solid fa-plus-circle"></i> + Add / Manage Portals
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if request.session.is_faculty %}
+                    <div class="nav-dropdown">
+                        <a href="#" class="nav-item">
+                            <i class="fa-solid fa-circle-plus me-1"></i> Add Asset <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; margin-left: 4px;"></i>
+                        </a>
+                        <div class="dropdown-menu-custom">
+                            <a href="{% url 'add_asset' 'Laptop' %}" class="dropdown-item-custom"><i class="fa-solid fa-laptop"></i> Laptop</a>
+                            <a href="{% url 'add_asset' 'Desktop' %}" class="dropdown-item-custom"><i class="fa-solid fa-desktop"></i> Desktop</a>
+                            <a href="{% url 'add_asset' 'Mobile' %}" class="dropdown-item-custom"><i class="fa-solid fa-mobile-screen-button"></i> Mobile</a>
+                            <a href="{% url 'add_asset' 'Fan' %}" class="dropdown-item-custom"><i class="fa-solid fa-fan"></i> Fan</a>
+                            <a href="{% url 'add_asset' 'Extension Board' %}" class="dropdown-item-custom"><i class="fa-solid fa-plug"></i> Extension Board</a>
+                            <a href="{% url 'add_asset' 'TV' %}" class="dropdown-item-custom"><i class="fa-solid fa-tv"></i> TV</a>
+                            <a href="{% url 'add_asset' 'WI-FI' %}" class="dropdown-item-custom"><i class="fa-solid fa-wifi"></i> Wi-Fi Router</a>
+                        </div>
+                    </div>
+
+                    <a href="{% url 'expense_tracker' %}" class="nav-item {% if request.resolver_match.url_name == 'expense_tracker' %}active{% endif %}">
+                        <i class="fa-solid fa-plus-circle me-1"></i> Add Expense
+                    </a>
+                {% endif %}
+            {% endif %}
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            {% if request.user.is_authenticated %}
+                <div class="user-badge" style="padding: 6px 14px 6px 8px; border-radius: 30px; background: #ffffff; border: 1px solid var(--border-light); display: inline-flex; align-items: center; gap: 10px; box-shadow: var(--shadow-xs);">
+                    <div class="avatar" style="width: 36px; height: 36px; min-width: 36px; border-radius: 50%; background: linear-gradient(135deg, #4f46e5 0%, #6366f1 100%); color: white; display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 0.95rem;">
+                        {{ request.user.username|slice:":1"|upper }}
+                    </div>
+                    <div style="display: flex; flex-direction: column; justify-content: center; text-align: left; gap: 3px;">
+                        <span style="font-weight: 700; font-size: 0.85rem; color: var(--navy-900); line-height: 1; margin: 0;">
+                            {{ request.user.username }}
+                        </span>
+                        {% if request.session.is_faculty or request.user.profile.role == 'Admin' %}
+                            <span class="faculty-badge" style="font-size: 0.68rem; font-weight: 700; padding: 2px 7px; border-radius: 10px; background: var(--emerald-50); color: var(--emerald-700); border: 1px solid rgba(5, 150, 105, 0.3); display: inline-flex; align-items: center; gap: 3px; line-height: 1; width: fit-content;">
+                                <i class="fa-solid fa-shield-halved"></i> Admin
+                            </span>
+                        {% else %}
+                            <span style="font-size: 0.725rem; font-weight: 700; color: var(--indigo-600); line-height: 1; margin: 0;">
+                                {{ request.user.profile.role|default:"Employee" }}
+                            </span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% if not request.session.is_faculty and request.user.username == 'admin' or not request.session.is_faculty and request.user.is_staff %}
+                    <button type="button" class="btn-lmt btn-secondary-glass" onclick="toggleFacultyModal(true)" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                        <i class="fa-solid fa-key" style="color: var(--amber-600);"></i> Admin Access
+                    </button>
+                {% endif %}
+
+                <form method="post" action="{% url 'logout' %}" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn-lmt btn-danger-glass" style="padding: 0.45rem 0.9rem; font-size: 0.85rem;">
+                        <i class="fa-solid fa-right-from-bracket"></i>
+                    </button>
+                </form>
+            {% else %}
+                <a href="{% url 'login' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.45rem 1rem;">Login</a>
+                <a href="{% url 'register' %}" class="btn-lmt btn-primary-gradient" style="padding: 0.45rem 1rem;">Register</a>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- Main Wrapper -->
+    <main class="main-wrapper">
+        <!-- Django Messages Toast -->
+        {% if messages %}
+            <div style="margin-bottom: 1.5rem;">
+                {% for message in messages %}
+                    <div class="glass-panel" style="padding: 1rem 1.25rem; margin-bottom: 0.75rem; border-left: 4px solid {% if message.tags == 'error' %}#f43f5e{% else %}#10b981{% endif %}; display: flex; align-items: center; justify-content: space-between;">
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <i class="fa-solid {% if message.tags == 'error' %}fa-circle-exclamation{% else %}fa-circle-check{% endif %}" style="color: {% if message.tags == 'error' %}#f43f5e{% else %}#10b981{% endif %}; font-size: 1.2rem;"></i>
+                            <span>{{ message }}</span>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <!-- Admin Access Modal -->
+    <div id="facultyModal" class="modal-overlay">
+        <div class="modal-box">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div style="width: 36px; height: 36px; border-radius: 8px; background: var(--amber-50); color: var(--amber-600); display: flex; align-items: center; justify-content: center;">
+                        <i class="fa-solid fa-user-shield"></i>
+                    </div>
+                    <h3 style="font-size: 1.15rem; color: var(--navy-900);">Admin Access Verification</h3>
+                </div>
+                <button onclick="toggleFacultyModal(false)" style="background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <form method="post" action="{% url 'faculty_login' %}">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label class="form-label">Enter Admin Security PIN to unlock Add/Edit permissions</label>
+                    <input type="password" name="pin_code" class="form-input" placeholder="Enter 4-digit PIN (default: 1234)" required style="letter-spacing: 4px; font-size: 1.1rem; text-align: center;">
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 1.5rem;">
+                    <button type="button" class="btn-lmt btn-secondary-glass" onclick="toggleFacultyModal(false)">Cancel</button>
+                    <button type="submit" class="btn-lmt btn-primary-gradient">Verify & Unlock Admin Mode</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleFacultyModal(show) {
+            const modal = document.getElementById('facultyModal');
+            if (show) {
+                modal.classList.add('active');
+            } else {
+                modal.classList.remove('active');
+            }
+        }
+    </script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

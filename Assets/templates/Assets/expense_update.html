@@ -1,0 +1,51 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Expense | LMT Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 600px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'expense_registered' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-arrow-left me-1"></i> Cancel & Return
+        </a>
+    </div>
+
+    <div class="glass-panel" style="padding: 2.25rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.75rem;">
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: var(--shadow-glow);">
+                <i class="fa-solid fa-pen-to-square"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.4rem; margin-bottom: 0.25rem;">Edit Expense Record</h2>
+                <p style="color: var(--text-secondary); font-size: 0.88rem;">Modify transaction details or reimbursement status</p>
+            </div>
+        </div>
+
+        <form method="post">
+            {% csrf_token %}
+
+            {% for field in form %}
+                <div class="form-group">
+                    <label class="form-label">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                        <div style="color: #fda4af; font-size: 0.8rem; margin-top: 4px;">{{ field.errors.0 }}</div>
+                    {% endif %}
+                </div>
+            {% endfor %}
+
+            <button type="submit" class="btn-lmt btn-emerald" style="width: 100%; margin-top: 1.5rem; padding: 0.8rem;">
+                <i class="fa-solid fa-floppy-disk me-1"></i> Update Expense Entry
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.glass-panel form input, .glass-panel form select, .glass-panel form textarea').forEach(el => {
+        if (el.type !== 'checkbox' && el.type !== 'submit') {
+            el.classList.add('form-input');
+        }
+    });
+</script>
+{% endblock %}

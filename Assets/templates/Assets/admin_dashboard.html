@@ -1,0 +1,294 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Admin Dashboard | Learnmore Technologies Command Center{% endblock %}
+
+{% block content %}
+<!-- ADMIN HEADER BANNER -->
+<div style="background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 100%); border-radius: var(--radius-lg); padding: 2.25rem 2.5rem; color: white; margin-bottom: 2rem; box-shadow: var(--shadow-md); position: relative; overflow: hidden;">
+    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1.5rem; position: relative; z-index: 2;">
+        <div>
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.5rem;">
+                <span class="badge-status badge-success" style="font-size: 0.825rem; padding: 4px 12px; font-weight: 700;">
+                    <i class="fa-solid fa-shield-check me-1"></i> Admin Access Active (PIN 1234)
+                </span>
+                <span style="font-size: 0.825rem; color: #cbd5e1;">
+                    <i class="fa-solid fa-user-shield me-1"></i> Full System Control Mode
+                </span>
+            </div>
+
+            <h1 style="font-size: 2.1rem; font-weight: 800; color: #ffffff; margin-bottom: 0.35rem; line-height: 1.2;">
+                Admin Central Command Dashboard
+            </h1>
+
+            <p style="color: #cbd5e1; font-size: 0.95rem; margin-bottom: 0; max-width: 650px;">
+                Manage candidates, placements, hiring companies, asset inventory, expense logs, company events, and web portals from one central hub.
+            </p>
+        </div>
+
+        <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+            <a href="{% url 'manage_users' %}" class="btn-lmt btn-emerald" style="padding: 0.65rem 1.25rem; font-size: 0.9rem;">
+                <i class="fa-solid fa-users-gear me-1"></i> Manage Employee Accounts
+            </a>
+            <a href="{% url 'add_student' %}" class="btn-lmt btn-primary-gradient" style="padding: 0.65rem 1.25rem; font-size: 0.9rem;">
+                + Add Candidate
+            </a>
+            <a href="{% url 'manage_events' %}" class="btn-lmt" style="background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); color: white; padding: 0.65rem 1.25rem; font-size: 0.9rem;">
+                + Post Event
+            </a>
+        </div>
+    </div>
+</div>
+
+<!-- OVERVIEW METRICS GRID (6 METRICS) -->
+<h2 style="font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; color: var(--navy-900);">
+    <i class="fa-solid fa-chart-pie" style="color: var(--indigo-600);"></i> System Overview & Statistics
+</h2>
+
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 2.5rem;">
+    <!-- Placements Metric -->
+    <a href="{% url 'placements' %}" class="glass-panel" style="padding: 1.25rem 1.5rem; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--indigo-600); transition: transform 0.2s ease;">
+        <div>
+            <div style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total Candidates</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: var(--navy-900); margin-top: 4px;">{{ total_students }}</div>
+        </div>
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: #eef2ff; color: var(--indigo-600); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+    </a>
+
+    <!-- Companies Metric -->
+    <a href="{% url 'manage_companies' %}" class="glass-panel" style="padding: 1.25rem 1.5rem; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--emerald-600); transition: transform 0.2s ease;">
+        <div>
+            <div style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Hiring Companies</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: var(--navy-900); margin-top: 4px;">{{ total_companies }}</div>
+        </div>
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: var(--emerald-50); color: var(--emerald-600); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            <i class="fa-solid fa-building"></i>
+        </div>
+    </a>
+
+    <!-- Assets Metric -->
+    <a href="{% url 'registered_assets' %}" class="glass-panel" style="padding: 1.25rem 1.5rem; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--blue-600); transition: transform 0.2s ease;">
+        <div>
+            <div style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Asset Inventory</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: var(--navy-900); margin-top: 4px;">{{ total_assets }}</div>
+        </div>
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: #eff6ff; color: var(--blue-600); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            <i class="fa-solid fa-boxes-stacked"></i>
+        </div>
+    </a>
+
+    <!-- Expenses Metric -->
+    <a href="{% url 'expense_registered' %}" class="glass-panel" style="padding: 1.25rem 1.5rem; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid var(--amber-600); transition: transform 0.2s ease;">
+        <div>
+            <div style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Total Expenses</div>
+            <div style="font-size: 1.45rem; font-weight: 800; color: var(--navy-900); margin-top: 4px;">₹{{ total_expense_amount|floatformat:0 }}</div>
+        </div>
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: var(--amber-50); color: var(--amber-600); display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            <i class="fa-solid fa-receipt"></i>
+        </div>
+    </a>
+
+    <!-- Events Metric -->
+    <a href="{% url 'manage_events' %}" class="glass-panel" style="padding: 1.25rem 1.5rem; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #8b5cf6; transition: transform 0.2s ease;">
+        <div>
+            <div style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Company Events</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: var(--navy-900); margin-top: 4px;">{{ total_events }}</div>
+        </div>
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: #f5f3ff; color: #8b5cf6; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            <i class="fa-solid fa-bullhorn"></i>
+        </div>
+    </a>
+
+    <!-- Portals Metric -->
+    <a href="{% url 'manage_portals' %}" class="glass-panel" style="padding: 1.25rem 1.5rem; text-decoration: none; display: flex; align-items: center; justify-content: space-between; border-left: 4px solid #ec4899; transition: transform 0.2s ease;">
+        <div>
+            <div style="font-size: 0.825rem; color: var(--text-muted); font-weight: 700; text-transform: uppercase;">Web Portals</div>
+            <div style="font-size: 1.75rem; font-weight: 800; color: var(--navy-900); margin-top: 4px;">{{ total_portals }}</div>
+        </div>
+        <div style="width: 46px; height: 46px; border-radius: 12px; background: #fdf2f8; color: #ec4899; display: flex; align-items: center; justify-content: center; font-size: 1.3rem;">
+            <i class="fa-solid fa-globe"></i>
+        </div>
+    </a>
+</div>
+
+<!-- QUICK CONTROL ACTIONS GRID -->
+<h2 style="font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; color: var(--navy-900);">
+    <i class="fa-solid fa-sliders" style="color: var(--indigo-600);"></i> Admin Operations Control Center
+</h2>
+
+<div class="grid-cards" style="margin-bottom: 2.5rem;">
+    <!-- Manage Placements -->
+    <div class="feature-card">
+        <div>
+            <div class="card-icon" style="background: #eef2ff; color: var(--indigo-600);">
+                <i class="fa-solid fa-graduation-cap"></i>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem; color: var(--navy-900);">Candidate Placements</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem;">
+                Add new candidates, record 1st/2nd round interviews, update selection status, and export Excel reports.
+            </p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <a href="{% url 'placements' %}" class="btn-lmt btn-primary-gradient" style="flex: 1; text-align: center;">View Directory</a>
+            <a href="{% url 'add_student' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.5rem 0.85rem;">+ Add</a>
+        </div>
+    </div>
+
+    <!-- Manage Hiring Companies -->
+    <div class="feature-card">
+        <div>
+            <div class="card-icon" style="background: var(--emerald-50); color: var(--emerald-600);">
+                <i class="fa-solid fa-building-circle-check"></i>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem; color: var(--navy-900);">Hiring Partner Companies</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem;">
+                Add new hiring companies to dropdown list, delete inactive companies, and track partner recruiters.
+            </p>
+        </div>
+        <a href="{% url 'manage_companies' %}" class="btn-lmt btn-emerald" style="text-align: center;">
+            Manage Companies <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Manage Asset Inventory -->
+    <div class="feature-card">
+        <div>
+            <div class="card-icon" style="background: #eff6ff; color: var(--blue-600);">
+                <i class="fa-solid fa-boxes-packing"></i>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem; color: var(--navy-900);">Asset Inventory</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem;">
+                Register Laptops, Desktops, Fans, Routers, Mobiles, edit purchase details, and delete hardware items.
+            </p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <a href="{% url 'registered_assets' %}" class="btn-lmt btn-secondary-glass" style="flex: 1; text-align: center;">View Inventory</a>
+            <a href="{% url 'add_asset' asset_type='laptop' %}" class="btn-lmt btn-primary-gradient" style="padding: 0.5rem 0.85rem;">+ Add Item</a>
+        </div>
+    </div>
+
+    <!-- Manage Expense Logs -->
+    <div class="feature-card">
+        <div>
+            <div class="card-icon" style="background: var(--amber-50); color: var(--amber-600);">
+                <i class="fa-solid fa-file-invoice-dollar"></i>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem; color: var(--navy-900);">Expense Tracker</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem;">
+                Log daily institute expenses, employee reimbursements, update status, and track financial balances.
+            </p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+            <a href="{% url 'expense_registered' %}" class="btn-lmt btn-secondary-glass" style="flex: 1; text-align: center;">View Expenses</a>
+            <a href="{% url 'expense_tracker' %}" class="btn-lmt btn-primary-gradient" style="padding: 0.5rem 0.85rem;">+ Log Expense</a>
+        </div>
+    </div>
+
+    <!-- Manage Events & Highlights -->
+    <div class="feature-card">
+        <div>
+            <div class="card-icon" style="background: #f5f3ff; color: #8b5cf6;">
+                <i class="fa-solid fa-bullhorn"></i>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem; color: var(--navy-900);">Company Events & Slideshow</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem;">
+                Post new campus placement events, upload banner photos, and manage the 2-second home page slideshow.
+            </p>
+        </div>
+        <a href="{% url 'manage_events' %}" class="btn-lmt" style="background: #8b5cf6; color: white; text-align: center;">
+            Manage Events <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+
+    <!-- Manage External Portals -->
+    <div class="feature-card">
+        <div>
+            <div class="card-icon" style="background: #fdf2f8; color: #ec4899;">
+                <i class="fa-solid fa-globe"></i>
+            </div>
+            <h3 style="font-size: 1.1rem; margin-bottom: 0.35rem; color: var(--navy-900);">External Portals & Links</h3>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-bottom: 1.25rem;">
+                Add company website URLs, external app links, and customize navbar Portals dropdown menu items.
+            </p>
+        </div>
+        <a href="{% url 'manage_portals' %}" class="btn-lmt" style="background: #ec4899; color: white; text-align: center;">
+            Manage Web Portals <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<!-- RECENT ACTIVITY SUMMARY SECTION -->
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; flex-wrap: wrap;">
+    <!-- Recent Candidates -->
+    <div class="glass-panel" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--navy-900); margin: 0;">
+                <i class="fa-solid fa-user-graduate me-2" style="color: var(--indigo-600);"></i> Recent Candidate Entries
+            </h3>
+            <a href="{% url 'placements' %}" style="font-size: 0.825rem; color: var(--indigo-600); font-weight: 700;">View All →</a>
+        </div>
+        <div class="table-container" style="border: none;">
+            <table class="lmt-table" style="font-size: 0.85rem;">
+                <thead>
+                    <tr>
+                        <th>Candidate Name</th>
+                        <th>Company</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for student in recent_students %}
+                        <tr>
+                            <td style="font-weight: 700;">{{ student.name }}</td>
+                            <td>{{ student.company_name|default:"Not Specified" }}</td>
+                            <td>
+                                {% if student.selection_status == 'Selected' or student.status == 'Placed' %}
+                                    <span class="badge-status badge-success">Placed</span>
+                                {% else %}
+                                    <span class="badge-status badge-warning">Interviewing</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No candidates recorded yet.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Recent Expenses -->
+    <div class="glass-panel" style="padding: 1.5rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.1rem; font-weight: 700; color: var(--navy-900); margin: 0;">
+                <i class="fa-solid fa-receipt me-2" style="color: var(--amber-600);"></i> Recent Operational Expenses
+            </h3>
+            <a href="{% url 'expense_registered' %}" style="font-size: 0.825rem; color: var(--amber-600); font-weight: 700;">View All →</a>
+        </div>
+        <div class="table-container" style="border: none;">
+            <table class="lmt-table" style="font-size: 0.85rem;">
+                <thead>
+                    <tr>
+                        <th>Employee</th>
+                        <th>Item</th>
+                        <th>Amount</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for exp in recent_expenses %}
+                        <tr>
+                            <td style="font-weight: 700;">{{ exp.name }}</td>
+                            <td>{{ exp.item|truncatechars:20 }}</td>
+                            <td style="font-weight: 700; color: var(--emerald-600);">₹{{ exp.amount }}</td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="3" style="text-align: center; color: var(--text-muted);">No expense entries logged.</td></tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

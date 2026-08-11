@@ -1,0 +1,328 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Home | Learnmore Technologies Portal{% endblock %}
+
+{% block content %}
+
+<!-- 2-SECOND AUTOMATIC COMPANY EVENTS SLIDESHOW / CAROUSEL -->
+<div style="margin-bottom: 2.5rem;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+        <h2 style="font-size: 1.35rem; margin-bottom: 0; display: flex; align-items: center; gap: 10px; color: var(--navy-900);">
+            <i class="fa-solid fa-bullhorn" style="color: var(--indigo-600); font-size: 1.4rem;"></i> Company Events & Highlights (2s Slideshow)
+        </h2>
+        <div style="display: flex; align-items: center; gap: 10px;">
+            <span style="font-size: 0.8rem; background: #eef2ff; color: var(--indigo-600); font-weight: 700; padding: 5px 12px; border-radius: var(--radius-full); border: 1px solid rgba(79, 70, 229, 0.2);">
+                <i class="fa-solid fa-rotate me-1"></i> Auto-Switching 2s
+            </span>
+            {% if request.session.is_faculty %}
+                <a href="{% url 'manage_events' %}" class="btn-lmt btn-primary-gradient" style="padding: 0.35rem 0.8rem; font-size: 0.85rem;">
+                    + Post Event
+                </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="glass-panel" style="padding: 0; overflow: hidden; position: relative; border: 2px solid rgba(79, 70, 229, 0.15); box-shadow: var(--shadow-md);" id="eventCarouselContainer">
+        <!-- Event Slide 1 -->
+        <div class="event-slide active" data-index="0" style="display: block; opacity: 1; transition: opacity 0.4s ease-in-out;">
+            <div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem; align-items: center; padding: 2.25rem 2.75rem; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); min-height: 220px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.85rem;">
+                        <span class="badge-status badge-info" style="font-size: 0.8rem; padding: 4px 10px;">
+                            <i class="fa-solid fa-star me-1"></i> Event Highlight 1 of 3
+                        </span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+                            <i class="fa-solid fa-clock me-1"></i> Featured Drive
+                        </span>
+                    </div>
+
+                    <h3 style="font-size: 1.75rem; color: var(--navy-900); font-weight: 800; margin-bottom: 0.75rem; line-height: 1.25;">
+                        Annual Mega Placement Drive 2024
+                    </h3>
+
+                    <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6; margin-bottom: 0; max-width: 680px;">
+                        50+ top IT hiring companies visited Learnmore Technologies campus for candidate placement interviews and direct job offers.
+                    </p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #4f46e5 0%, #3b82f6 100%); color: white; border-radius: 16px; padding: 2rem; text-align: center; box-shadow: var(--shadow-sm);">
+                    <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(255, 255, 255, 0.2); display: inline-flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-trophy"></i>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.15rem; color: white;">Placement Fest</div>
+                    <div style="font-size: 0.825rem; opacity: 0.9; margin-top: 4px;">Learnmore Technologies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Slide 2 -->
+        <div class="event-slide" data-index="1" style="display: none; opacity: 0; transition: opacity 0.4s ease-in-out;">
+            <div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem; align-items: center; padding: 2.25rem 2.75rem; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); min-height: 220px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.85rem;">
+                        <span class="badge-status badge-success" style="font-size: 0.8rem; padding: 4px 10px;">
+                            <i class="fa-solid fa-code me-1"></i> Event Highlight 2 of 3
+                        </span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+                            <i class="fa-solid fa-clock me-1"></i> Tech Hackathon
+                        </span>
+                    </div>
+
+                    <h3 style="font-size: 1.75rem; color: var(--navy-900); font-weight: 800; margin-bottom: 0.75rem; line-height: 1.25;">
+                        Full-Stack Development Hackathon
+                    </h3>
+
+                    <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6; margin-bottom: 0; max-width: 680px;">
+                        Students showcased innovative AI & Web projects during the 24-hour coding challenge at LMT Tech Center with live jury demos.
+                    </p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 16px; padding: 2rem; text-align: center; box-shadow: var(--shadow-sm);">
+                    <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(255, 255, 255, 0.2); display: inline-flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-laptop-code"></i>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.15rem; color: white;">24h Hackathon</div>
+                    <div style="font-size: 0.825rem; opacity: 0.9; margin-top: 4px;">Learnmore Technologies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Slide 3 -->
+        <div class="event-slide" data-index="2" style="display: none; opacity: 0; transition: opacity 0.4s ease-in-out;">
+            <div style="display: grid; grid-template-columns: 1.3fr 0.7fr; gap: 2rem; align-items: center; padding: 2.25rem 2.75rem; background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%); min-height: 220px;">
+                <div>
+                    <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 0.85rem;">
+                        <span class="badge-status badge-purple" style="font-size: 0.8rem; padding: 4px 10px;">
+                            <i class="fa-solid fa-award me-1"></i> Event Highlight 3 of 3
+                        </span>
+                        <span style="font-size: 0.8rem; color: var(--text-muted); font-weight: 500;">
+                            <i class="fa-solid fa-clock me-1"></i> Award Ceremony
+                        </span>
+                    </div>
+
+                    <h3 style="font-size: 1.75rem; color: var(--navy-900); font-weight: 800; margin-bottom: 0.75rem; line-height: 1.25;">
+                        Excellence & Graduation Award Ceremony
+                    </h3>
+
+                    <p style="color: var(--text-secondary); font-size: 1rem; line-height: 1.6; margin-bottom: 0; max-width: 680px;">
+                        Celebrating 80%+ graduation rate and honoring top performers with placement certificates & salary hike badges.
+                    </p>
+                </div>
+
+                <div style="background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%); color: white; border-radius: 16px; padding: 2rem; text-align: center; box-shadow: var(--shadow-sm);">
+                    <div style="width: 56px; height: 56px; border-radius: 14px; background: rgba(255, 255, 255, 0.2); display: inline-flex; align-items: center; justify-content: center; font-size: 1.75rem; margin-bottom: 0.75rem;">
+                        <i class="fa-solid fa-medal"></i>
+                    </div>
+                    <div style="font-weight: 800; font-size: 1.15rem; color: white;">Graduation Honor</div>
+                    <div style="font-size: 0.825rem; opacity: 0.9; margin-top: 4px;">Learnmore Technologies</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slideshow Controls & Progress Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 2.25rem; background: #f1f5f9; border-top: 1px solid var(--border-light);">
+            <!-- Dots (3 Event Dots) -->
+            <div style="display: flex; gap: 8px;" id="carouselDots">
+                <div onclick="manuallyGoToSlide(0)" class="dot-item active-dot" style="width: 12px; height: 12px; border-radius: 50%; background: var(--indigo-600); cursor: pointer; transition: all 0.3s ease;"></div>
+                <div onclick="manuallyGoToSlide(1)" class="dot-item" style="width: 12px; height: 12px; border-radius: 50%; background: var(--text-light); cursor: pointer; transition: all 0.3s ease;"></div>
+                <div onclick="manuallyGoToSlide(2)" class="dot-item" style="width: 12px; height: 12px; border-radius: 50%; background: var(--text-light); cursor: pointer; transition: all 0.3s ease;"></div>
+            </div>
+
+            <!-- Navigation Controls -->
+            <div style="display: flex; gap: 8px; align-items: center;">
+                <button onclick="manuallyPrevSlide()" class="btn-lmt btn-secondary-glass" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: 50%;">
+                    <i class="fa-solid fa-chevron-left"></i>
+                </button>
+                <button onclick="manuallyNextSlide()" class="btn-lmt btn-secondary-glass" style="padding: 0.35rem 0.75rem; font-size: 0.85rem; border-radius: 50%;">
+                    <i class="fa-solid fa-chevron-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- SIDE-BY-SIDE LAYOUT: LEFT SIDE (2 CORE CARDS) & RIGHT SIDE (COMPANY PORTALS TABLE) -->
+<div style="display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 2rem; margin-top: 1.5rem; margin-bottom: 2.5rem; align-items: start;" class="home-main-layout">
+
+    <!-- LEFT COLUMN: Core Management Operations (2 Cards) -->
+    <div>
+        <h2 style="font-size: 1.25rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 10px; color: var(--navy-900);">
+            <i class="fa-solid fa-cubes-stacked" style="color: var(--indigo-600);"></i> Core Management Operations
+        </h2>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem;">
+            <!-- Placement Directory -->
+            <div class="feature-card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="card-icon">
+                        <i class="fa-solid fa-graduation-cap"></i>
+                    </div>
+                    <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; color: var(--navy-900);">Placement Directory</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.25rem; line-height: 1.5;">
+                        Browse candidate records, track Round 1, Round 2 & Final interview stages, and export company-wise data reports.
+                    </p>
+                </div>
+                <a href="{% url 'placements' %}" class="btn-lmt btn-primary-gradient" style="justify-content: center;">
+                    View Directory <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+
+            <!-- Asset Inventory -->
+            <div class="feature-card" style="margin: 0; display: flex; flex-direction: column; justify-content: space-between;">
+                <div>
+                    <div class="card-icon" style="background: var(--emerald-50); color: var(--emerald-600);">
+                        <i class="fa-solid fa-boxes-packing"></i>
+                    </div>
+                    <h3 style="font-size: 1.15rem; margin-bottom: 0.5rem; color: var(--navy-900);">Asset Inventory</h3>
+                    <p style="color: var(--text-secondary); font-size: 0.88rem; margin-bottom: 1.25rem; line-height: 1.5;">
+                        Manage Laptops, Desktops, Fans, Wi-Fi Routers, and Mobiles with serial numbers and purchase details.
+                    </p>
+                </div>
+                <a href="{% url 'registered_assets' %}" class="btn-lmt btn-emerald" style="justify-content: center;">
+                    View Inventory <i class="fa-solid fa-arrow-right ms-1"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- RIGHT COLUMN: Company Portals Table -->
+    <div>
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; flex-wrap: wrap; gap: 10px;">
+            <h2 style="font-size: 1.25rem; margin-bottom: 0; display: flex; align-items: center; gap: 10px; color: var(--navy-900);">
+                <i class="fa-solid fa-globe" style="color: var(--indigo-600); font-size: 1.3rem;"></i> Company Portals
+            </h2>
+            {% if request.session.is_faculty %}
+                <a href="{% url 'manage_portals' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.3rem 0.75rem; font-size: 0.8rem;">
+                    <i class="fa-solid fa-gear me-1"></i> Manage Links
+                </a>
+            {% endif %}
+        </div>
+
+        <div class="glass-panel" style="padding: 0; overflow: hidden; width: 100%; box-shadow: var(--shadow-sm);">
+            <div class="table-container" style="border: none;">
+                <table class="lmt-table" style="width: 100%;">
+                    <thead>
+                        <tr>
+                            <th style="width: 45px;">#</th>
+                            <th>Company Portal Name</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for portal in nav_portal_links %}
+                            <tr>
+                                <td style="color: var(--text-muted); font-weight: 600; width: 45px; vertical-align: middle;">{{ forloop.counter }}</td>
+                                <td style="padding: 0.8rem 1rem; vertical-align: middle;">
+                                    <a href="{{ portal.url }}" target="_blank" style="font-weight: 700; font-size: 0.95rem; color: var(--navy-900); text-decoration: none; display: inline-flex; align-items: center; gap: 8px;" class="portal-row-link">
+                                        <i class="fa-solid fa-globe" style="color: var(--indigo-600); font-size: 1.05rem;"></i>
+                                        <span>{{ portal.title }}</span>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="2" style="text-align: center; padding: 1.5rem; color: var(--text-muted);">
+                                    No portals added yet. Click Manage Links to add portals.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<style>
+@media (max-width: 992px) {
+    .home-main-layout {
+        grid-template-columns: 1fr !important;
+    }
+}
+</style>
+
+<!-- Direct Automatic 2-Second Switcher JavaScript -->
+<script>
+    (function() {
+        let activeIdx = 0;
+        let autoTimer = null;
+
+        function updateSlideUI(newIdx) {
+            const slides = document.querySelectorAll('.event-slide');
+            const dots = document.querySelectorAll('.dot-item');
+            if (!slides || slides.length === 0) return;
+
+            slides.forEach((s, i) => {
+                if (i === newIdx) {
+                    s.style.display = 'block';
+                    setTimeout(() => { s.style.opacity = '1'; }, 20);
+                } else {
+                    s.style.display = 'none';
+                    s.style.opacity = '0';
+                }
+            });
+
+            dots.forEach((d, i) => {
+                if (i === newIdx) {
+                    d.style.background = 'var(--indigo-600)';
+                    d.style.transform = 'scale(1.3)';
+                } else {
+                    d.style.background = 'var(--text-light)';
+                    d.style.transform = 'scale(1)';
+                }
+            });
+
+            activeIdx = newIdx;
+        }
+
+        function autoNext() {
+            const slides = document.querySelectorAll('.event-slide');
+            if (!slides || slides.length <= 1) return;
+            let nextIdx = (activeIdx + 1) % slides.length;
+            updateSlideUI(nextIdx);
+        }
+
+        window.manuallyGoToSlide = function(idx) {
+            updateSlideUI(idx);
+            restartTimer();
+        };
+
+        window.manuallyNextSlide = function() {
+            const slides = document.querySelectorAll('.event-slide');
+            if (!slides || slides.length <= 1) return;
+            let nextIdx = (activeIdx + 1) % slides.length;
+            updateSlideUI(nextIdx);
+            restartTimer();
+        };
+
+        window.manuallyPrevSlide = function() {
+            const slides = document.querySelectorAll('.event-slide');
+            if (!slides || slides.length <= 1) return;
+            let prevIdx = (activeIdx - 1 + slides.length) % slides.length;
+            updateSlideUI(prevIdx);
+            restartTimer();
+        };
+
+        function startTimer() {
+            if (!autoTimer) {
+                autoTimer = setInterval(autoNext, 2000); // 2000 milliseconds = 2 seconds
+            }
+        }
+
+        function restartTimer() {
+            if (autoTimer) {
+                clearInterval(autoTimer);
+                autoTimer = null;
+            }
+            startTimer();
+        }
+
+        if (document.readyState === 'complete' || document.readyState === 'interactive') {
+            startTimer();
+        } else {
+            document.addEventListener('DOMContentLoaded', startTimer);
+        }
+    })();
+</script>
+{% endblock %}

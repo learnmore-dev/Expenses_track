@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+
+{% block title %}Sign In | LMT Portal{% endblock %}
+
+{% block content %}
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <div style="text-align: center; margin-bottom: 2rem;">
+            <div style="width: 56px; height: 56px; border-radius: 16px; background: var(--navy-900); display: inline-flex; align-items: center; justify-content: center; color: white; font-size: 1.6rem; box-shadow: var(--shadow-sm); margin-bottom: 1rem;">
+                <i class="fa-solid fa-user-lock"></i>
+            </div>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem; color: var(--navy-900);">Welcome Back</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem;">Sign in to access your LMT dashboard</p>
+        </div>
+
+        <form method="post" action="{% url 'login' %}">
+            {% csrf_token %}
+
+            {% if form.non_field_errors %}
+                <div style="background: var(--rose-50); border: 1px solid rgba(225, 29, 72, 0.3); color: var(--rose-700); padding: 0.75rem; border-radius: 8px; font-size: 0.88rem; margin-bottom: 1rem;">
+                    {{ form.non_field_errors.0 }}
+                </div>
+            {% endif %}
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-user me-1" style="color: var(--indigo-600);"></i> Username</label>
+                <input type="text" name="username" class="form-input" placeholder="Enter your username" required autofocus>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-key me-1" style="color: var(--indigo-600);"></i> Password</label>
+                <input type="password" name="password" class="form-input" placeholder="Enter your password" required>
+            </div>
+
+            <button type="submit" class="btn-lmt btn-primary-gradient" style="width: 100%; margin-top: 1rem; padding: 0.8rem;">
+                Sign In to Account <i class="fa-solid fa-arrow-right-to-bracket ms-1"></i>
+            </button>
+        </form>
+
+        <div style="text-align: center; margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid var(--border-light); font-size: 0.88rem; color: var(--text-muted);">
+            <i class="fa-solid fa-shield-halved me-1" style="color: var(--indigo-600);"></i> Employee accounts are created & provided directly by the Admin.
+        </div>
+    </div>
+</div>
+{% endblock %}

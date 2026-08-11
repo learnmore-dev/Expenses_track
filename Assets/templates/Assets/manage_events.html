@@ -1,0 +1,109 @@
+{% extends 'base.html' %}
+
+{% block title %}Manage Company Events & Slideshow | LMT Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 860px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'home' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Add New Event Form -->
+    <div class="glass-panel" style="padding: 2rem; margin-bottom: 2rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: var(--shadow-sm);">
+                <i class="fa-solid fa-bullhorn"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.4rem; margin-bottom: 0.25rem; color: var(--navy-900);">Post New Company Event</h2>
+                <p style="color: var(--text-secondary); font-size: 0.88rem;">Publish events to the 2-second automatic homepage slideshow</p>
+            </div>
+        </div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Event Title</label>
+                    <input type="text" name="title" class="form-input" placeholder="e.g. Annual Placement Drive 2024" required>
+                </div>
+                <div class="form-group" style="margin-bottom: 0;">
+                    <label class="form-label">Event Photo / Banner (Optional)</label>
+                    <input type="file" name="image" class="form-input" accept="image/*">
+                </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+                <label class="form-label">Event Description & Details</label>
+                <textarea name="description" class="form-input" rows="3" placeholder="Describe the event, highlights, guest speakers, or achievements..." style="resize: vertical;"></textarea>
+            </div>
+
+            <button type="submit" class="btn-lmt btn-primary-gradient" style="padding: 0.75rem 1.4rem;">
+                <i class="fa-solid fa-paper-plane me-1"></i> Publish Event to Slideshow
+            </button>
+        </form>
+    </div>
+
+    <!-- Events List Directory -->
+    <div class="glass-panel" style="padding: 0; overflow: hidden;">
+        <div style="padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-light); background: #f8fafc;">
+            <h3 style="font-size: 1.1rem; color: var(--navy-900); font-weight: 700;">
+                <i class="fa-solid fa-images me-1" style="color: var(--indigo-600);"></i> Active Company Events ({{ events|length }})
+            </h3>
+        </div>
+
+        <div class="table-container" style="border: none;">
+            <table class="lmt-table">
+                <thead>
+                    <tr>
+                        <th style="width: 50px;">#</th>
+                        <th>Event Banner</th>
+                        <th>Event Title</th>
+                        <th>Description</th>
+                        <th>Published Date</th>
+                        <th style="text-align: right;">Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for event in events %}
+                        <tr>
+                            <td style="color: var(--text-muted); font-weight: 600;">{{ forloop.counter }}</td>
+                            <td>
+                                {% if event.image %}
+                                    <img src="{{ event.image.url }}" alt="Event Banner" style="width: 60px; height: 40px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-light);">
+                                {% else %}
+                                    <div style="width: 60px; height: 40px; border-radius: 6px; background: #eef2ff; color: var(--indigo-600); display: flex; align-items: center; justify-content: center; font-size: 0.85rem;">
+                                        <i class="fa-solid fa-image"></i>
+                                    </div>
+                                {% endif %}
+                            </td>
+                            <td style="font-weight: 700; color: var(--navy-900);">{{ event.title }}</td>
+                            <td style="color: var(--text-secondary); font-size: 0.88rem; max-width: 250px;">
+                                {{ event.description|default:"-" }}
+                            </td>
+                            <td style="color: var(--text-muted); font-size: 0.85rem;">{{ event.created_at|date:"M d, Y" }}</td>
+                            <td style="text-align: right;">
+                                <form method="post" action="{% url 'delete_event' event.pk %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete event \'{{ event.title }}\'?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-lmt btn-danger-glass" style="padding: 0.35rem 0.75rem; font-size: 0.8rem;">
+                                        <i class="fa-solid fa-trash me-1"></i> Delete
+                                    </button>
+                                </form>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" style="text-align: center; padding: 3rem; color: var(--text-muted);">
+                                <i class="fa-solid fa-calendar-xmark" style="font-size: 2.5rem; margin-bottom: 1rem; display: block; color: var(--text-light);"></i>
+                                No company events published yet. Add your first event above!
+                            </td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+{% endblock %}

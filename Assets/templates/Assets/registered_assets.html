@@ -1,0 +1,139 @@
+{% extends 'base.html' %}
+
+{% block title %}Registered Assets Inventory | LMT Portal{% endblock %}
+
+{% block content %}
+<div class="glass-panel" style="padding: 1.5rem 2rem; margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h2 style="font-size: 1.5rem; margin-bottom: 0.25rem; color: var(--navy-900);">
+            Hardware & Asset Inventory
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem;">
+            Manage laptops, desktops, mobiles, and office equipment
+        </p>
+    </div>
+
+    {% if request.session.is_faculty %}
+        <div style="display: flex; gap: 10px;">
+            <div class="nav-dropdown">
+                <button class="btn-lmt btn-primary-gradient">
+                    <i class="fa-solid fa-plus-circle me-1"></i> Register New Asset <i class="fa-solid fa-chevron-down" style="font-size: 0.75rem; margin-left: 4px;"></i>
+                </button>
+                <div class="dropdown-menu-custom">
+                    <a href="{% url 'add_asset' 'Laptop' %}" class="dropdown-item-custom"><i class="fa-solid fa-laptop"></i> Laptop</a>
+                    <a href="{% url 'add_asset' 'Desktop' %}" class="dropdown-item-custom"><i class="fa-solid fa-desktop"></i> Desktop</a>
+                    <a href="{% url 'add_asset' 'Mobile' %}" class="dropdown-item-custom"><i class="fa-solid fa-mobile-screen-button"></i> Mobile</a>
+                    <a href="{% url 'add_asset' 'Fan' %}" class="dropdown-item-custom"><i class="fa-solid fa-fan"></i> Fan</a>
+                    <a href="{% url 'add_asset' 'Extension Board' %}" class="dropdown-item-custom"><i class="fa-solid fa-plug"></i> Extension Board</a>
+                    <a href="{% url 'add_asset' 'TV' %}" class="dropdown-item-custom"><i class="fa-solid fa-tv"></i> TV</a>
+                    <a href="{% url 'add_asset' 'WI-FI' %}" class="dropdown-item-custom"><i class="fa-solid fa-wifi"></i> Wi-Fi Router</a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<div class="glass-panel" style="padding: 0; overflow: hidden;">
+    <div class="table-container" style="border: none;">
+        <table class="lmt-table">
+            <thead>
+                <tr>
+                    <th>Serial Number</th>
+                    <th>Asset Name</th>
+                    <th>Assigned Employee</th>
+                    <th>Branch</th>
+                    <th>Purchase Date</th>
+                    <th>Asset Type</th>
+                    <th>Preview Image</th>
+                    <th>Comments</th>
+                    <th>Status</th>
+                    {% if request.session.is_faculty %}
+                        <th style="text-align: right;">Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for asset in assets %}
+                    <tr>
+                        <td style="font-weight: 700; color: var(--indigo-600);">{{ asset.serial_no }}</td>
+                        <td style="font-weight: 600; color: var(--navy-900);">{{ asset.name }}</td>
+                        <td>
+                            {% if asset.assigned_to %}
+                                <span class="badge-status badge-purple" style="font-weight: 700;">
+                                    <i class="fa-solid fa-user me-1"></i> {{ asset.assigned_to.username }}
+                                </span>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">Unassigned</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ asset.branch_name }}</td>
+                        <td>{{ asset.purchase_date }}</td>
+                        <td>
+                            <span class="badge-status badge-info">
+                                {{ asset.asset_type }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if asset.image %}
+                                <img src="{{ asset.image.url }}" alt="Asset Image" onclick="openImageModal('{{ asset.image.url }}')" style="width: 48px; height: 36px; object-fit: cover; border-radius: 6px; border: 1px solid var(--border-light); cursor: pointer; transition: transform 0.2s ease;">
+                            {% else %}
+                                <span style="color: var(--text-muted); font-size: 0.85rem;">No Image</span>
+                            {% endif %}
+                        </td>
+                        <td style="color: var(--text-secondary); max-width: 180px;">
+                            {{ asset.comment|default:"-" }}
+                        </td>
+                        <td>
+                            {% if asset.active %}
+                                <span class="badge-status badge-success"><i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> Active</span>
+                            {% else %}
+                                <span class="badge-status badge-warning"><i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i> Inactive</span>
+                            {% endif %}
+                        </td>
+                        {% if request.session.is_faculty %}
+                            <td style="text-align: right;">
+                                <a href="{% url 'edit_asset' asset.pk %}" class="btn-lmt btn-secondary-glass" style="padding: 0.35rem 0.7rem; font-size: 0.8rem; margin-right: 4px;">
+                                    <i class="fa-solid fa-pen"></i> Edit
+                                </a>
+                                <a href="{% url 'delete_asset' asset.pk %}" class="btn-lmt btn-danger-glass" style="padding: 0.35rem 0.7rem; font-size: 0.8rem;">
+                                    <i class="fa-solid fa-trash"></i>
+                                </a>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="9" style="text-align: center; padding: 3.5rem; color: var(--text-muted);">
+                            <i class="fa-solid fa-box-open" style="font-size: 2.5rem; margin-bottom: 1rem; display: block; color: var(--text-light);"></i>
+                            No assets registered in system.
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Image Modal Preview -->
+<div id="imgModal" class="modal-overlay">
+    <div class="modal-box" style="max-width: 600px; text-align: center;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+            <h3 style="font-size: 1.1rem; color: var(--navy-900);">Asset Image Preview</h3>
+            <button onclick="closeImageModal()" style="background: none; border: none; color: var(--text-muted); font-size: 1.2rem; cursor: pointer;">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+        <img id="modalImage" src="" alt="Preview Image" style="max-width: 100%; max-height: 420px; border-radius: 12px; border: 1px solid var(--border-light);">
+    </div>
+</div>
+
+<script>
+    function openImageModal(src) {
+        document.getElementById("imgModal").classList.add("active");
+        document.getElementById("modalImage").src = src;
+    }
+    function closeImageModal() {
+        document.getElementById("imgModal").classList.remove("active");
+    }
+</script>
+{% endblock %}

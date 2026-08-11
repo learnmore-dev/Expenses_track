@@ -1,0 +1,149 @@
+{% extends 'base.html' %}
+
+{% block title %}{% if is_edit %}Edit Candidate Details{% else %}Add Placement Candidate{% endif %} | LMT Portal{% endblock %}
+
+{% block content %}
+<div style="max-width: 660px; margin: 0 auto;">
+    <div style="margin-bottom: 1.5rem;">
+        <a href="{% url 'placements' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.45rem 1rem;">
+            <i class="fa-solid fa-arrow-left me-1"></i> Back to Placement Directory
+        </a>
+    </div>
+
+    <div class="glass-panel" style="padding: 2.25rem;">
+        <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1.5rem;">
+            <div style="width: 48px; height: 48px; border-radius: 14px; background: var(--primary-gradient); color: white; display: flex; align-items: center; justify-content: center; font-size: 1.4rem; box-shadow: var(--shadow-sm);">
+                <i class="fa-solid {% if is_edit %}fa-user-pen{% else %}fa-user-plus{% endif %}"></i>
+            </div>
+            <div>
+                <h2 style="font-size: 1.4rem; margin-bottom: 0.25rem; color: var(--navy-900);">
+                    {% if is_edit %}Edit Candidate: {{ student.shortlisted_candidate_name }}{% else %}Add Candidate Interview Record{% endif %}
+                </h2>
+                <p style="color: var(--text-secondary); font-size: 0.88rem;">Log candidate info, target company, & interview round status</p>
+            </div>
+        </div>
+
+        {% if not is_edit and existing_candidates %}
+            <!-- Helper: Select Existing Candidate to add 2nd/3rd Company -->
+            <div style="background: #eef2ff; border: 1px solid rgba(79, 70, 229, 0.2); border-radius: var(--radius-md); padding: 1rem 1.25rem; margin-bottom: 1.5rem;">
+                <label class="form-label" style="color: var(--indigo-600); margin-bottom: 0.35rem;">
+                    <i class="fa-solid fa-bolt me-1"></i> Quick Auto-Fill for Existing Student (Adding 2nd/3rd Company Interview)
+                </label>
+                <select id="existingCandidateSelect" class="form-input" onchange="autoFillCandidate(this)" style="font-size: 0.88rem; background: white;">
+                    <option value="">-- Choose Existing Student to Auto-Fill Details --</option>
+                    {% for cand in existing_candidates %}
+                        <option value="{{ cand.email_id }}" 
+                                data-name="{{ cand.shortlisted_candidate_name }}"
+                                data-email="{{ cand.email_id }}"
+                                data-contact="{{ cand.contact_number }}"
+                                data-qual="{{ cand.highest_qualification }}"
+                                data-course="{{ cand.course_undergone_in_learnmore_technologies }}"
+                                data-year="{{ cand.pass_out_year }}"
+                                data-perc="{{ cand.graduating_percentage }}">
+                            {{ cand.shortlisted_candidate_name }} ({{ cand.email_id }})
+                        </option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+
+        <form method="post">
+            {% csrf_token %}
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-user me-1" style="color: var(--indigo-600);"></i> Candidate Name</label>
+                <input type="text" name="shortlisted_candidate_name" id="id_shortlisted_candidate_name" class="form-input" value="{{ form.shortlisted_candidate_name.value|default:'' }}" placeholder="Candidate Full Name" required>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-phone me-1" style="color: var(--emerald-600);"></i> Contact Number</label>
+                    <input type="text" name="contact_number" id="id_contact_number" class="form-input" value="{{ form.contact_number.value|default:'' }}" placeholder="Mobile Number">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label"><i class="fa-solid fa-envelope me-1" style="color: var(--blue-600);"></i> Email Address</label>
+                    <input type="email" name="email_id" id="id_email_id" class="form-input" value="{{ form.email_id.value|default:'' }}" placeholder="Email Address" required>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label class="form-label">Qualification</label>
+                    <input type="text" name="highest_qualification" id="id_highest_qualification" class="form-input" value="{{ form.highest_qualification.value|default:'' }}" placeholder="B.E / B.Tech / MCA">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Graduation %</label>
+                    <input type="number" step="0.01" name="graduating_percentage" id="id_graduating_percentage" class="form-input" value="{{ form.graduating_percentage.value|default:'' }}" placeholder="75.50">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Passout Year</label>
+                    <input type="number" name="pass_out_year" id="id_pass_out_year" class="form-input" value="{{ form.pass_out_year.value|default:'' }}" placeholder="2024">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-graduation-cap me-1" style="color: var(--indigo-600);"></i> LMT Course Undergone</label>
+                <input type="text" name="course_undergone_in_learnmore_technologies" id="id_course_undergone_in_learnmore_technologies" class="form-input" value="{{ form.course_undergone_in_learnmore_technologies.value|default:'' }}" placeholder="Full Stack Python / Java">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-building me-1" style="color: var(--purple-600);"></i> Select Interviewed Company</label>
+                {{ form.company }}
+            </div>
+
+            <!-- Interview Stage Checkboxes -->
+            <div style="background: #f8fafc; border: 1px solid var(--border-light); border-radius: var(--radius-md); padding: 1.25rem; margin-top: 1rem; margin-bottom: 1.5rem;">
+                <label class="form-label" style="margin-bottom: 0.75rem; color: var(--navy-900); font-weight: 700;">
+                    <i class="fa-solid fa-list-check me-1" style="color: var(--emerald-600);"></i> Interview Stages Status for Selected Company
+                </label>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+                        {{ form.attended_interview }} Attended Interview
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+                        {{ form.first_round }} First Round Cleared
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer;">
+                        {{ form.second_round }} Second Round Cleared
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 8px; font-size: 0.9rem; cursor: pointer; color: var(--emerald-700); font-weight: 700;">
+                        {{ form.final_round }} Final Selection / Placed
+                    </label>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-lmt btn-primary-gradient" style="width: 100%; padding: 0.85rem; font-size: 1rem;">
+                <i class="fa-solid fa-floppy-disk me-1"></i> {% if is_edit %}Update Candidate Record{% else %}Save Interview Record{% endif %}
+            </button>
+        </form>
+    </div>
+</div>
+
+<script>
+    document.querySelectorAll('.glass-panel form select').forEach(el => {
+        el.classList.add('form-input');
+    });
+
+    function autoFillCandidate(selectEl) {
+        const opt = selectEl.options[selectEl.selectedIndex];
+        if (!opt.value) return;
+
+        document.getElementById('id_shortlisted_candidate_name').value = opt.getAttribute('data-name') || '';
+        document.getElementById('id_email_id').value = opt.getAttribute('data-email') || '';
+        document.getElementById('id_contact_number').value = opt.getAttribute('data-contact') || '';
+        document.getElementById('id_highest_qualification').value = opt.getAttribute('data-qual') || '';
+        document.getElementById('id_course_undergone_in_learnmore_technologies').value = opt.getAttribute('data-course') || '';
+        if (opt.getAttribute('data-year') && opt.getAttribute('data-year') !== 'None') {
+            document.getElementById('id_pass_out_year').value = opt.getAttribute('data-year');
+        }
+        if (opt.getAttribute('data-perc') && opt.getAttribute('data-perc') !== 'None') {
+            document.getElementById('id_graduating_percentage').value = opt.getAttribute('data-perc');
+        }
+    }
+</script>
+{% endblock %}

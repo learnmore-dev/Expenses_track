@@ -1,0 +1,20 @@
+{% extends "Assets/home.html" %}  <!-- Extending your main template inside Assets folder -->
+
+{% block content %}
+<h2>Faculty Access Login</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Submit</button>
+</form>
+
+{% if messages %}
+  <ul>
+    {% for message in messages %}
+      <li>{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
+
+{% endblock %}
