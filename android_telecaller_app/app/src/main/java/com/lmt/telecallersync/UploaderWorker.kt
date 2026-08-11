@@ -22,6 +22,8 @@ object UploaderWorker {
 
         val client = OkHttpClient()
 
+        val mimeType = if (file.name.endsWith(".mp3")) "audio/mpeg" else "audio/mp4"
+
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
             .addFormDataPart("telecaller_username", username)
@@ -30,7 +32,7 @@ object UploaderWorker {
             .addFormDataPart("duration_seconds", durationSeconds.toString())
             .addFormDataPart(
                 "audio_file", file.name,
-                RequestBody.create("audio/mp4".toMediaTypeOrNull(), file)
+                RequestBody.create(mimeType.toMediaTypeOrNull(), file)
             )
             .build()
 

@@ -6,27 +6,20 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
-import android.media.AudioFormat
-import android.media.AudioRecord
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import java.io.File
-import java.io.FileOutputStream
-import java.io.RandomAccessFile
 
 class AudioRecorderService : Service() {
 
-    private var audioRecord: AudioRecord? = null
-    private var isRecording = false
-    private var recordingThread: Thread? = null
-    private var wavFile: File? = null
+    private var mediaRecorder: MediaRecorder? = null
+    private var audioFile: File? = null
 
     companion object {
         private const val CHANNEL_ID = "LMT_CALL_SYNC_CHANNEL"
         private const val NOTIF_ID = 999
-        private const val SAMPLE_RATE = 44100
     }
 
     override fun onCreate() {
@@ -44,9 +37,9 @@ class AudioRecorderService : Service() {
         val duration = intent.getIntExtra("duration", 0)
 
         when (action) {
-            "START" -> startPcmRecording()
+            "START" -> startMp3Recording()
             "STOP" -> {
-                stopPcmRecording()
+                stopMp3Recording()
                 uploadAudio(number, callType, duration)
             }
             "MISSED" -> {
@@ -56,228 +49,50 @@ class AudioRecorderService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun startPcmRecording() {
-        if (isRecording) return
-
+    private fun startMp3Recording() {
         val dir = File(externalCacheDir, "recordings")
         if (!dir.exists()) dir.mkdirs()
 
-        wavFile = File(dir, "rec_${System.currentTimeMillis()}.wav")
+        // Create standard MP3 format file
+        audioFile = File(dir, "rec_${System.currentTimeMillis()}.mp3")
 
-        val channelConfig = AudioFormat.CHANNEL_IN_MONO
-        val audioFormat = AudioFormat.ENCODING_PCM_16BIT
-        val minBufferSize = AudioRecord.getMinBufferSize(SAMPLE_RATE, channelConfig, audioFormat)
-        val bufferSize = Math.max(minBufferSize, 8192)
-
-        val sources = intArrayOf(
-            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+        val audioSources = intArrayOf(
             MediaRecorder.AudioSource.MIC,
+            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
             MediaRecorder.AudioSource.VOICE_RECOGNITION,
             MediaRecorder.AudioSource.CAMCORDER,
             MediaRecorder.AudioSource.DEFAULT
         )
 
-        for (source in sources) {
+        for (source in audioSources) {
             try {
-                val record = AudioRecord(source, SAMPLE_RATE, channelConfig, audioFormat, bufferSize)
-                if (record.state == AudioRecord.STATE_INITIALIZED) {
-                    audioRecord = record
-                    println("AudioRecord initialized successfully with source: $source")
-                    break
+                mediaRecorder = MediaRecorder().apply {
+                    setAudioSource(source)
+                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                    setAudioSamplingRate(44100)
+                    setAudioEncodingBitRate(128000)
+                    setOutputFile(audioFile!!.absolutePath)
+                    prepare()
+                    start()
                 }
+                println("Successfully started MediaRecorder MP3 with source: $source")
+                break
             } catch (e: Exception) {
                 e.printStackTrace()
+                mediaRecorder?.release()
+                mediaRecorder = null
             }
         }
-
-        if (audioRecord == null) return
-
-        isRecording = true
-        audioRecord?.startRecording()
-
-        recordingThread = Thread {
-            writeAudioDataToWavFile(bufferSize)
-        }
-        recordingThread?.start()
     }
 
-    private fun writeAudioDataToWavFile(bufferSize: Int) {
-        val data = ByteArray(bufferSize)
-        var os: FileOutputStream? = null
-
+    private fun stopMp3Recording() {
         try {
-            os = FileOutputStream(wavFile)
-            writeWavHeader(os, 0, 0, SAMPLE_RATE, 1, 16)
-
-            var totalAudioLen = 0L
-
-            while (isRecording) {
-                val read = audioRecord?.read(data, 0, data.size) ?: 0
-                if (read > 0) {
-                    os.write(data, 0, read)
-                    totalAudioLen += read
-                }
-            }
-
-            os.close()
-            os = null
-
-            // Update WAV header with actual data length
-            if (wavFile != null && wavFile!!.exists()) {
-                updateWavHeader(wavFile!!, totalAudioLen)
-            }
+            mediaRecorder?.stop()
+            mediaRecorder?.release()
+            mediaRecorder = null
         } catch (e: Exception) {
             e.printStackTrace()
-        } finally {
-            try {
-                os?.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-        }
-    }
-
-    private fun stopPcmRecording() {
-        if (!isRecording) return
-
-        isRecording = false
-        try {
-            audioRecord?.stop()
-            audioRecord?.release()
-            audioRecord = null
-            recordingThread?.join(1000)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun writeWavHeader(
-        out: FileOutputStream,
-        totalAudioLen: Long,
-        totalDataLen: Long,
-        longSampleRate: Int,
-        channels: Int,
-        byteRate: Int
-    ) {
-        val header = ByteArray(44)
-        val bitsPerSample = 16
-        val sampleRate = longSampleRate.toLong()
-        val calculatedByteRate = (sampleRate * channels * bitsPerSample / 8)
-
-        header[0] = 'R'.code.toByte()
-        header[1] = 'I'.code.toByte()
-        header[2] = 'F'.code.toByte()
-        header[3] = 'F'.code.toByte()
-        header[4] = (totalDataLen and 0xffL).toByte()
-        header[5] = (totalDataLen shr 8 and 0xffL).toByte()
-        header[6] = (totalDataLen shr 16 and 0xffL).toByte()
-        header[7] = (totalDataLen shr 24 and 0xffL).toByte()
-        header[8] = 'W'.code.toByte()
-        header[9] = 'A'.code.toByte()
-        header[10] = 'V'.code.toByte()
-        header[11] = 'E'.code.toByte()
-        header[12] = 'f'.code.toByte()
-        header[13] = 'm'.code.toByte()
-        header[14] = 't'.code.toByte()
-        header[15] = ' '.code.toByte()
-        header[16] = 16
-        header[17] = 0
-        header[18] = 0
-        header[19] = 0
-        header[20] = 1
-        header[21] = 0
-        header[22] = channels.toByte()
-        header[23] = 0
-        header[24] = (sampleRate and 0xffL).toByte()
-        header[25] = (sampleRate shr 8 and 0xffL).toByte()
-        header[26] = (sampleRate shr 16 and 0xffL).toByte()
-        header[27] = (sampleRate shr 24 and 0xffL).toByte()
-        header[28] = (calculatedByteRate and 0xffL).toByte()
-        header[29] = (calculatedByteRate shr 8 and 0xffL).toByte()
-        header[30] = (calculatedByteRate shr 16 and 0xffL).toByte()
-        header[31] = (calculatedByteRate shr 24 and 0xffL).toByte()
-        header[32] = (channels * bitsPerSample / 8).toByte()
-        header[33] = 0
-        header[34] = bitsPerSample.toByte()
-        header[35] = 0
-        header[36] = 'd'.code.toByte()
-        header[37] = 'a'.code.toByte()
-        header[38] = 't'.code.toByte()
-        header[39] = 'a'.code.toByte()
-        header[40] = (totalAudioLen and 0xffL).toByte()
-        header[41] = (totalAudioLen shr 8 and 0xffL).toByte()
-        header[42] = (totalAudioLen shr 16 and 0xffL).toByte()
-        header[43] = (totalAudioLen shr 24 and 0xffL).toByte()
-
-        out.write(header, 0, 44)
-    }
-
-    private fun updateWavHeader(wavFile: File, totalAudioLen: Long) {
-        val totalDataLen = totalAudioLen + 36
-        val sampleRate = SAMPLE_RATE.toLong()
-        val channels = 1
-        val bitsPerSample = 16
-        val calculatedByteRate = (sampleRate * channels * bitsPerSample / 8)
-
-        val header = ByteArray(44)
-        header[0] = 'R'.code.toByte()
-        header[1] = 'I'.code.toByte()
-        header[2] = 'F'.code.toByte()
-        header[3] = 'F'.code.toByte()
-        header[4] = (totalDataLen and 0xffL).toByte()
-        header[5] = (totalDataLen shr 8 and 0xffL).toByte()
-        header[6] = (totalDataLen shr 16 and 0xffL).toByte()
-        header[7] = (totalDataLen shr 24 and 0xffL).toByte()
-        header[8] = 'W'.code.toByte()
-        header[9] = 'A'.code.toByte()
-        header[10] = 'V'.code.toByte()
-        header[11] = 'E'.code.toByte()
-        header[12] = 'f'.code.toByte()
-        header[13] = 'm'.code.toByte()
-        header[14] = 't'.code.toByte()
-        header[15] = ' '.code.toByte()
-        header[16] = 16
-        header[17] = 0
-        header[18] = 0
-        header[19] = 0
-        header[20] = 1
-        header[21] = 0
-        header[22] = channels.toByte()
-        header[23] = 0
-        header[24] = (sampleRate and 0xffL).toByte()
-        header[25] = (sampleRate shr 8 and 0xffL).toByte()
-        header[26] = (sampleRate shr 16 and 0xffL).toByte()
-        header[27] = (sampleRate shr 24 and 0xffL).toByte()
-        header[28] = (calculatedByteRate and 0xffL).toByte()
-        header[29] = (calculatedByteRate shr 8 and 0xffL).toByte()
-        header[30] = (calculatedByteRate shr 16 and 0xffL).toByte()
-        header[31] = (calculatedByteRate shr 24 and 0xffL).toByte()
-        header[32] = (channels * bitsPerSample / 8).toByte()
-        header[33] = 0
-        header[34] = bitsPerSample.toByte()
-        header[35] = 0
-        header[36] = 'd'.code.toByte()
-        header[37] = 'a'.code.toByte()
-        header[38] = 't'.code.toByte()
-        header[39] = 'a'.code.toByte()
-        header[40] = (totalAudioLen and 0xffL).toByte()
-        header[41] = (totalAudioLen shr 8 and 0xffL).toByte()
-        header[42] = (totalAudioLen shr 16 and 0xffL).toByte()
-        header[43] = (totalAudioLen shr 24 and 0xffL).toByte()
-
-        var raf: RandomAccessFile? = null
-        try {
-            raf = RandomAccessFile(wavFile, "rw")
-            raf.seek(0)
-            raf.write(header)
-        } catch (e: Exception) {
-            e.printStackTrace()
-        } finally {
-            try {
-                raf?.close()
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
         }
     }
 
@@ -286,7 +101,7 @@ class AudioRecorderService : Service() {
         val baseUrl = prefs.getString("server_url", "http://192.168.1.27:8000") ?: "http://192.168.1.27:8000"
         val username = prefs.getString("username", "Abhishek") ?: "Abhishek"
 
-        if (wavFile != null && wavFile!!.exists()) {
+        if (audioFile != null && audioFile!!.exists()) {
             UploaderWorker.enqueueUpload(
                 context = this,
                 serverUrl = "$baseUrl/api/upload-call-recording/",
@@ -294,7 +109,7 @@ class AudioRecorderService : Service() {
                 number = number,
                 callType = callType,
                 durationSeconds = duration,
-                filePath = wavFile!!.absolutePath
+                filePath = audioFile!!.absolutePath
             )
         }
     }
