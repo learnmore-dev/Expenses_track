@@ -186,10 +186,7 @@
                         <td>
                             {% if rec.audio_file %}
                                 <div class="lmt-audio-player">
-                                    <audio controls preload="none">
-                                        <source src="{{ rec.audio_file.url }}" type="audio/mpeg">
-                                        <source src="{{ rec.audio_file.url }}" type="audio/mp4">
-                                        <source src="{{ rec.audio_file.url }}" type="audio/wav">
+                                    <audio controls src="{{ rec.audio_file.url }}" preload="metadata" style="height: 34px; max-width: 220px;">
                                         Your browser does not support the audio element.
                                     </audio>
                                     <a href="{{ rec.audio_file.url }}" download class="btn-lmt btn-secondary-glass" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Download Recording">

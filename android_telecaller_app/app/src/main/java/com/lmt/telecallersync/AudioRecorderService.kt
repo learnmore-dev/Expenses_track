@@ -50,40 +50,38 @@ class AudioRecorderService : Service() {
     }
 
     private fun startRecording() {
-        try {
-            val dir = File(externalCacheDir, "recordings")
-            if (!dir.exists()) dir.mkdirs()
+        val dir = File(externalCacheDir, "recordings")
+        if (!dir.exists()) dir.mkdirs()
 
-            audioFile = File(dir, "rec_${System.currentTimeMillis()}.m4a")
+        audioFile = File(dir, "rec_${System.currentTimeMillis()}.m4a")
 
-            val audioSources = intArrayOf(
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                MediaRecorder.AudioSource.VOICE_COMMUNICATION,
-                MediaRecorder.AudioSource.CAMCORDER,
-                MediaRecorder.AudioSource.MIC,
-                MediaRecorder.AudioSource.DEFAULT
-            )
+        val audioSources = intArrayOf(
+            MediaRecorder.AudioSource.VOICE_RECOGNITION,
+            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+            MediaRecorder.AudioSource.MIC,
+            MediaRecorder.AudioSource.CAMCORDER,
+            MediaRecorder.AudioSource.DEFAULT
+        )
 
-            for (source in audioSources) {
-                try {
-                    mediaRecorder = MediaRecorder().apply {
-                        setAudioSource(source)
-                        setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-                        setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-                        setOutputFile(audioFile!!.absolutePath)
-                        prepare()
-                        start()
-                    }
-                    println("Successfully started MediaRecorder with audio source: $source")
-                    break
-                } catch (e: Exception) {
-                    e.printStackTrace()
-                    mediaRecorder?.release()
-                    mediaRecorder = null
+        for (source in audioSources) {
+            try {
+                mediaRecorder = MediaRecorder().apply {
+                    setAudioSource(source)
+                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                    setAudioSamplingRate(44100)
+                    setAudioEncodingBitRate(128000)
+                    setOutputFile(audioFile!!.absolutePath)
+                    prepare()
+                    start()
                 }
+                println("Successfully started MediaRecorder with audio source: $source")
+                break
+            } catch (e: Exception) {
+                e.printStackTrace()
+                mediaRecorder?.release()
+                mediaRecorder = null
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
