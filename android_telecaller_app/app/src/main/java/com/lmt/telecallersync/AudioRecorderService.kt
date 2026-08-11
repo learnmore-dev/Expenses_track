@@ -55,11 +55,13 @@ class AudioRecorderService : Service() {
 
         audioFile = File(dir, "rec_${System.currentTimeMillis()}.m4a")
 
+        // Prioritize VOICE_CALL (Source 4) & VOICE_COMMUNICATION for capturing both caller and receiver voice
         val audioSources = intArrayOf(
-            MediaRecorder.AudioSource.VOICE_RECOGNITION,
-            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+            MediaRecorder.AudioSource.VOICE_CALL,          // 4: In-call Uplink + Downlink
+            MediaRecorder.AudioSource.VOICE_COMMUNICATION, // 7: VoIP / Dual-way Voice
+            MediaRecorder.AudioSource.VOICE_RECOGNITION,   // 6: High Gain Raw Mic
+            MediaRecorder.AudioSource.CAMCORDER,           // 5: Unfiltered Video Mic
             MediaRecorder.AudioSource.MIC,
-            MediaRecorder.AudioSource.CAMCORDER,
             MediaRecorder.AudioSource.DEFAULT
         )
 
