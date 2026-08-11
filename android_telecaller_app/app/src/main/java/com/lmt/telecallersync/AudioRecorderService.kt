@@ -34,29 +34,37 @@ class AudioRecorderService : Service() {
     }
 
     private fun startRecording() {
-        try {
-            val dir = File(externalCacheDir, "recordings")
-            if (!dir.exists()) dir.mkdirs()
+        val dir = File(externalCacheDir, "recordings")
+        if (!dir.exists()) dir.mkdirs()
 
-            audioFile = File(dir, "rec_${System.currentTimeMillis()}.m4a")
+        audioFile = File(dir, "rec_${System.currentTimeMillis()}.m4a")
 
-            mediaRecorder = MediaRecorder().apply {
-                // Use MIC source for maximum compatibility across Android 10, 11, 12, 13, 14
-                try {
-                    setAudioSource(MediaRecorder.AudioSource.MIC)
-                } catch (e: Exception) {
-                    setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+        val audioSources = intArrayOf(
+            MediaRecorder.AudioSource.VOICE_RECOGNITION,
+            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+            MediaRecorder.AudioSource.CAMCORDER,
+            MediaRecorder.AudioSource.MIC,
+            MediaRecorder.AudioSource.DEFAULT
+        )
+
+        for (source in audioSources) {
+            try {
+                mediaRecorder = MediaRecorder().apply {
+                    setAudioSource(source)
+                    setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                    setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+                    setOutputFile(audioFile!!.absolutePath)
+                    prepare()
+                    start()
                 }
-                setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
-                setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
-                setAudioSamplingRate(44100)
-                setAudioEncodingBitRate(96000)
-                setOutputFile(audioFile!!.absolutePath)
-                prepare()
-                start()
+                // If start() succeeded without exception, break out of loop
+                println("Successfully started MediaRecorder with audio source: $source")
+                break
+            } catch (e: Exception) {
+                e.printStackTrace()
+                mediaRecorder?.release()
+                mediaRecorder = null
             }
-        } catch (e: Exception) {
-            e.printStackTrace()
         }
     }
 
@@ -96,8 +104,8 @@ class AudioRecorderService : Service() {
         UploaderWorker.enqueueMissedCall(
             context = this,
             serverUrl = "$baseUrl/api/upload-call-recording/",
-                username = username,
-                number = number
+            username = username,
+            number = number
         )
     }
 }
