@@ -41,9 +41,16 @@ class AudioRecorderService : Service() {
             audioFile = File(dir, "rec_${System.currentTimeMillis()}.m4a")
 
             mediaRecorder = MediaRecorder().apply {
-                setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                // Use MIC source for maximum compatibility across Android 10, 11, 12, 13, 14
+                try {
+                    setAudioSource(MediaRecorder.AudioSource.MIC)
+                } catch (e: Exception) {
+                    setAudioSource(MediaRecorder.AudioSource.VOICE_COMMUNICATION)
+                }
                 setOutputFormat(MediaRecorder.OutputFormat.MPEG_4)
                 setAudioEncoder(MediaRecorder.AudioEncoder.AAC)
+                setAudioSamplingRate(44100)
+                setAudioEncodingBitRate(96000)
                 setOutputFile(audioFile!!.absolutePath)
                 prepare()
                 start()
@@ -65,7 +72,7 @@ class AudioRecorderService : Service() {
 
     private fun uploadAudio(number: String, callType: String, duration: Int) {
         val prefs = getSharedPreferences("LMTSyncPrefs", Context.MODE_PRIVATE)
-        val baseUrl = prefs.getString("server_url", "http://192.168.1.15:8000") ?: "http://192.168.1.15:8000"
+        val baseUrl = prefs.getString("server_url", "http://192.168.1.27:8000") ?: "http://192.168.1.27:8000"
         val username = prefs.getString("username", "Abhishek") ?: "Abhishek"
 
         if (audioFile != null && audioFile!!.exists()) {
@@ -83,14 +90,14 @@ class AudioRecorderService : Service() {
 
     private fun uploadMissedCall(number: String) {
         val prefs = getSharedPreferences("LMTSyncPrefs", Context.MODE_PRIVATE)
-        val baseUrl = prefs.getString("server_url", "http://192.168.1.15:8000") ?: "http://192.168.1.15:8000"
+        val baseUrl = prefs.getString("server_url", "http://192.168.1.27:8000") ?: "http://192.168.1.27:8000"
         val username = prefs.getString("username", "Abhishek") ?: "Abhishek"
 
         UploaderWorker.enqueueMissedCall(
             context = this,
             serverUrl = "$baseUrl/api/upload-call-recording/",
-            username = username,
-            number = number
+                username = username,
+                number = number
         )
     }
 }
