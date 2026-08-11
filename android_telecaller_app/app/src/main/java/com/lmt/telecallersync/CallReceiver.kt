@@ -3,6 +3,7 @@ package com.lmt.telecallersync
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import android.provider.CallLog
 import android.telephony.TelephonyManager
 
 class CallReceiver : BroadcastReceiver() {
@@ -37,43 +38,69 @@ class CallReceiver : BroadcastReceiver() {
     private fun onCallStateChanged(context: Context, state: Int, number: String?) {
         if (lastState == state) return
 
+        if (!number.isNullOrEmpty()) {
+            savedNumber = number
+        }
+
         when (state) {
             TelephonyManager.CALL_STATE_RINGING -> {
                 isIncoming = true
-                savedNumber = number
+                if (!number.isNullOrEmpty()) savedNumber = number
             }
             TelephonyManager.CALL_STATE_OFFHOOK -> {
                 callStartTime = System.currentTimeMillis()
+                val targetNumber = savedNumber ?: getLatestCallLogNumber(context) ?: "Unknown Number"
                 val intent = Intent(context, AudioRecorderService::class.java).apply {
                     putExtra("action", "START")
-                    putExtra("number", savedNumber ?: "Unknown")
+                    putExtra("number", targetNumber)
                     putExtra("call_type", if (isIncoming) "INCOMING" else "OUTGOING")
                 }
                 context.startService(intent)
             }
             TelephonyManager.CALL_STATE_IDLE -> {
+                val targetNumber = savedNumber ?: getLatestCallLogNumber(context) ?: "Unknown Number"
                 if (lastState == TelephonyManager.CALL_STATE_OFFHOOK) {
                     val durationSeconds = ((System.currentTimeMillis() - callStartTime) / 1000).toInt()
                     val intent = Intent(context, AudioRecorderService::class.java).apply {
                         putExtra("action", "STOP")
-                        putExtra("number", savedNumber ?: "Unknown")
+                        putExtra("number", targetNumber)
                         putExtra("duration", durationSeconds)
                         putExtra("call_type", if (isIncoming) "INCOMING" else "OUTGOING")
                     }
                     context.startService(intent)
                 } else if (lastState == TelephonyManager.CALL_STATE_RINGING) {
-                    // Missed Call!
                     val intent = Intent(context, AudioRecorderService::class.java).apply {
                         putExtra("action", "MISSED")
-                        putExtra("number", savedNumber ?: "Unknown")
+                        putExtra("number", targetNumber)
                         putExtra("duration", 0)
                         putExtra("call_type", "MISSED")
                     }
                     context.startService(intent)
                 }
                 isIncoming = false
+                savedNumber = null
             }
         }
         lastState = state
+    }
+
+    private fun getLatestCallLogNumber(context: Context): String? {
+        try {
+            val cursor = context.contentResolver.query(
+                CallLog.Calls.CONTENT_URI,
+                arrayOf(CallLog.Calls.NUMBER),
+                null,
+                null,
+                "${CallLog.Calls.DATE} DESC"
+            )
+            cursor?.use {
+                if (it.moveToFirst()) {
+                    return it.getString(it.getColumnIndexOrThrow(CallLog.Calls.NUMBER))
+                }
+            }
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+        return null
     }
 }
