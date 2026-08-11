@@ -1039,11 +1039,12 @@ def call_recordings_hub(request):
     user_role = request.user.profile.role.lower() if (hasattr(request.user, 'profile') and request.user.profile.role) else ''
     is_admin = request.user.is_superuser or request.session.get('is_faculty') or (user_role == 'admin')
     
-    # Non-admin users see only their own recordings
-    if is_admin:
-        recordings_qs = CallRecording.objects.all().order_by('-id')
-    else:
-        recordings_qs = CallRecording.objects.filter(telecaller=request.user).order_by('-id')
+    # Strictly restrict Call Recordings Center to Admin/Faculty accounts only
+    if not is_admin:
+        messages.error(request, "Access Restricted: Only Admin accounts can view Call Recordings.")
+        return redirect('home')
+
+    recordings_qs = CallRecording.objects.all().order_by('-id')
 
     # Search & Filter
     search_q = request.GET.get('q', '').strip()
