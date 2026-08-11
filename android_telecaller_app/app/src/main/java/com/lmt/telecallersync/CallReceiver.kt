@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.provider.CallLog
 import android.telephony.TelephonyManager
+import androidx.core.content.ContextCompat
 
 class CallReceiver : BroadcastReceiver() {
 
@@ -50,32 +51,44 @@ class CallReceiver : BroadcastReceiver() {
             TelephonyManager.CALL_STATE_OFFHOOK -> {
                 callStartTime = System.currentTimeMillis()
                 val targetNumber = savedNumber ?: getLatestCallLogNumber(context) ?: "Unknown Number"
-                val intent = Intent(context, AudioRecorderService::class.java).apply {
+                val serviceIntent = Intent(context, AudioRecorderService::class.java).apply {
                     putExtra("action", "START")
                     putExtra("number", targetNumber)
                     putExtra("call_type", if (isIncoming) "INCOMING" else "OUTGOING")
                 }
-                context.startService(intent)
+                try {
+                    ContextCompat.startForegroundService(context, serviceIntent)
+                } catch (e: Exception) {
+                    context.startService(serviceIntent)
+                }
             }
             TelephonyManager.CALL_STATE_IDLE -> {
                 val targetNumber = savedNumber ?: getLatestCallLogNumber(context) ?: "Unknown Number"
                 if (lastState == TelephonyManager.CALL_STATE_OFFHOOK) {
                     val durationSeconds = ((System.currentTimeMillis() - callStartTime) / 1000).toInt()
-                    val intent = Intent(context, AudioRecorderService::class.java).apply {
+                    val serviceIntent = Intent(context, AudioRecorderService::class.java).apply {
                         putExtra("action", "STOP")
                         putExtra("number", targetNumber)
                         putExtra("duration", durationSeconds)
                         putExtra("call_type", if (isIncoming) "INCOMING" else "OUTGOING")
                     }
-                    context.startService(intent)
+                    try {
+                        ContextCompat.startForegroundService(context, serviceIntent)
+                    } catch (e: Exception) {
+                        context.startService(serviceIntent)
+                    }
                 } else if (lastState == TelephonyManager.CALL_STATE_RINGING) {
-                    val intent = Intent(context, AudioRecorderService::class.java).apply {
+                    val serviceIntent = Intent(context, AudioRecorderService::class.java).apply {
                         putExtra("action", "MISSED")
                         putExtra("number", targetNumber)
                         putExtra("duration", 0)
                         putExtra("call_type", "MISSED")
                     }
-                    context.startService(intent)
+                    try {
+                        ContextCompat.startForegroundService(context, serviceIntent)
+                    } catch (e: Exception) {
+                        context.startService(serviceIntent)
+                    }
                 }
                 isIncoming = false
                 savedNumber = null

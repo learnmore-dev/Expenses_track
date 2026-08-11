@@ -1,16 +1,32 @@
 package com.lmt.telecallersync
 
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
 import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.media.MediaRecorder
+import android.os.Build
 import android.os.IBinder
+import androidx.core.app.NotificationCompat
 import java.io.File
 
 class AudioRecorderService : Service() {
 
     private var mediaRecorder: MediaRecorder? = null
     private var audioFile: File? = null
+
+    companion object {
+        private const val CHANNEL_ID = "LMT_CALL_SYNC_CHANNEL"
+        private const val NOTIF_ID = 999
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        createNotificationChannel()
+        startForeground(NOTIF_ID, createNotification("Monitoring Phone Call Sync..."))
+    }
 
     override fun onBind(intent: Intent?): IBinder? = null
 
@@ -34,37 +50,40 @@ class AudioRecorderService : Service() {
     }
 
     private fun startRecording() {
-        val dir = File(externalCacheDir, "recordings")
-        if (!dir.exists()) dir.mkdirs()
+        try {
+            val dir = File(externalCacheDir, "recordings")
+            if (!dir.exists()) dir.mkdirs()
 
-        audioFile = File(dir, "rec_${System.currentTimeMillis()}.m4a")
+            audioFile = File(dir, "rec_${System.currentTimeMillis()}.m4a")
 
-        val audioSources = intArrayOf(
-            MediaRecorder.AudioSource.VOICE_RECOGNITION,
-            MediaRecorder.AudioSource.VOICE_COMMUNICATION,
-            MediaRecorder.AudioSource.CAMCORDER,
-            MediaRecorder.AudioSource.MIC,
-            MediaRecorder.AudioSource.DEFAULT
-        )
+            val audioSources = intArrayOf(
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+                MediaRecorder.AudioSource.CAMCORDER,
+                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.DEFAULT
+            )
 
-        for (source in audioSources) {
-            try {
-                mediaRecorder = MediaRecorder().apply {
-                    setAudioSource(source)
-                    setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
-                    setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
-                    setOutputFile(audioFile!!.absolutePath)
-                    prepare()
-                    start()
+            for (source in audioSources) {
+                try {
+                    mediaRecorder = MediaRecorder().apply {
+                        setAudioSource(source)
+                        setOutputFormat(MediaRecorder.OutputFormat.THREE_GPP)
+                        setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB)
+                        setOutputFile(audioFile!!.absolutePath)
+                        prepare()
+                        start()
+                    }
+                    println("Successfully started MediaRecorder with audio source: $source")
+                    break
+                } catch (e: Exception) {
+                    e.printStackTrace()
+                    mediaRecorder?.release()
+                    mediaRecorder = null
                 }
-                // If start() succeeded without exception, break out of loop
-                println("Successfully started MediaRecorder with audio source: $source")
-                break
-            } catch (e: Exception) {
-                e.printStackTrace()
-                mediaRecorder?.release()
-                mediaRecorder = null
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -107,5 +126,27 @@ class AudioRecorderService : Service() {
             username = username,
             number = number
         )
+    }
+
+    private fun createNotificationChannel() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val channel = NotificationChannel(
+                CHANNEL_ID,
+                "Phone Call Sync Service",
+                NotificationManager.IMPORTANCE_LOW
+            )
+            val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+            manager.createNotificationChannel(channel)
+        }
+    }
+
+    private fun createNotification(contentText: String): Notification {
+        return NotificationCompat.Builder(this, CHANNEL_ID)
+            .setContentTitle("LMT Telecaller Sync")
+            .setContentText(contentText)
+            .setSmallIcon(android.R.drawable.ic_menu_call)
+            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setOngoing(true)
+            .build()
     }
 }
