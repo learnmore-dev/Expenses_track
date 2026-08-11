@@ -3,6 +3,7 @@ package com.lmt.telecallersync
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import android.widget.Button
 import android.widget.EditText
@@ -26,7 +27,7 @@ class MainActivity : AppCompatActivity() {
         btnSave = findViewById(R.id.btnSave)
 
         val prefs = getSharedPreferences("LMTSyncPrefs", Context.MODE_PRIVATE)
-        etServerUrl.setText(prefs.getString("server_url", "http://192.168.1.15:8000"))
+        etServerUrl.setText(prefs.getString("server_url", "http://192.168.1.27:8000"))
         etUsername.setText(prefs.getString("username", "Abhishek"))
 
         requestPermissionsIfRequired()
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun requestPermissionsIfRequired() {
-        val permissions = arrayOf(
+        val permissionsList = mutableListOf(
             Manifest.permission.RECORD_AUDIO,
             Manifest.permission.READ_PHONE_STATE,
             Manifest.permission.READ_CALL_LOG,
@@ -59,7 +60,11 @@ class MainActivity : AppCompatActivity() {
             Manifest.permission.READ_EXTERNAL_STORAGE
         )
 
-        val needed = permissions.filter {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            permissionsList.add(Manifest.permission.POST_NOTIFICATIONS)
+        }
+
+        val needed = permissionsList.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
 
