@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+
+{% block title %}Call Recordings Center | LMT Portal{% endblock %}
+
+{% block content %}
+<style>
+    .lmt-audio-player {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #f8fafc;
+        border: 1px solid var(--border-light);
+        padding: 4px 10px;
+        border-radius: 30px;
+        width: fit-content;
+    }
+
+    .lmt-audio-player audio {
+        height: 32px;
+        max-width: 210px;
+        outline: none;
+    }
+
+    .stat-card-mini {
+        background: #ffffff;
+        border: 1px solid var(--border-light);
+        border-radius: 14px;
+        padding: 1.15rem 1.4rem;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        box-shadow: var(--shadow-xs);
+    }
+</style>
+
+<!-- Top Header Banner -->
+<div class="glass-panel" style="padding: 1.5rem 2rem; margin-bottom: 1.75rem; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem;">
+    <div>
+        <h2 style="font-size: 1.6rem; font-weight: 800; margin-bottom: 0.25rem; color: var(--navy-900);">
+            <i class="fa-solid fa-headset" style="color: var(--indigo-600);"></i> Telecaller Call Recordings Center
+        </h2>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin: 0;">
+            Listen to candidate phone recordings, review telecaller logs, and analyze talking duration
+        </p>
+    </div>
+
+    {% if is_admin %}
+        <div style="display: flex; gap: 10px;">
+            <a href="{% url 'admin_dashboard' %}" class="btn-lmt btn-secondary-glass">
+                ← Admin Dashboard
+            </a>
+        </div>
+    {% endif %}
+</div>
+
+{% if messages %}
+    {% for message in messages %}
+        <div class="alert-custom alert-{{ message.tags }}" style="margin-bottom: 1.5rem;">
+            <i class="fa-solid fa-circle-info me-2"></i> {{ message }}
+        </div>
+    {% endfor %}
+{% endif %}
+
+<!-- Summary Stat Cards -->
+<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1.25rem; margin-bottom: 1.75rem;">
+    <div class="stat-card-mini">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #eef2ff; color: var(--indigo-600); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-microphone-lines"></i>
+        </div>
+        <div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: var(--navy-900);">{{ total_recordings }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Total Call Recordings</div>
+        </div>
+    </div>
+
+    <div class="stat-card-mini">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #ecfdf5; color: var(--emerald-600); display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-clock"></i>
+        </div>
+        <div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: var(--navy-900);">{{ total_minutes }} mins</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Total Talking Time</div>
+        </div>
+    </div>
+
+    <div class="stat-card-mini">
+        <div style="width: 44px; height: 44px; border-radius: 12px; background: #f0f9ff; color: #0284c7; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-users"></i>
+        </div>
+        <div>
+            <div style="font-size: 1.4rem; font-weight: 800; color: var(--navy-900);">{{ active_telecallers|length }}</div>
+            <div style="font-size: 0.8rem; color: var(--text-muted); font-weight: 600;">Active Telecallers</div>
+        </div>
+    </div>
+</div>
+
+<!-- Search & Filter Bar -->
+<div class="glass-panel" style="padding: 1rem 1.5rem; margin-bottom: 1.5rem;">
+    <form method="GET" style="display: flex; gap: 1rem; flex-wrap: wrap; align-items: center; width: 100%;">
+        <div style="flex: 1; min-width: 240px;">
+            <input type="text" name="q" value="{{ search_q }}" placeholder="Search by phone number, candidate, or telecaller..." class="form-control-lmt" style="padding: 0.55rem 1rem;">
+        </div>
+
+        {% if active_telecallers %}
+            <div style="min-width: 180px;">
+                <select name="telecaller" class="form-control-lmt" style="padding: 0.55rem 1rem;" onchange="this.form.submit()">
+                    <option value="">All Telecallers</option>
+                    {% for tname in active_telecallers %}
+                        <option value="{{ tname }}" {% if telecaller_filter == tname %}selected{% endif %}>{{ tname }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+        {% endif %}
+
+        <button type="submit" class="btn-lmt btn-primary-gradient" style="padding: 0.55rem 1.25rem;">
+            <i class="fa-solid fa-magnifying-glass me-1"></i> Filter
+        </button>
+
+        {% if search_q or telecaller_filter %}
+            <a href="{% url 'call_recordings_hub' %}" class="btn-lmt btn-secondary-glass" style="padding: 0.55rem 1rem;">Clear</a>
+        {% endif %}
+    </form>
+</div>
+
+<!-- Recordings Table -->
+<div class="glass-panel" style="padding: 0; overflow: hidden; box-shadow: var(--shadow-md);">
+    <div class="table-container" style="border: none;">
+        <table class="lmt-table">
+            <thead>
+                <tr>
+                    <th style="width: 45px;">#</th>
+                    <th>Telecaller</th>
+                    <th>Candidate & Phone</th>
+                    <th>Type</th>
+                    <th>Duration</th>
+                    <th>Timestamp</th>
+                    <th>Audio Playback ▶️</th>
+                    {% if is_admin %}
+                        <th style="text-align: right;">Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for rec in recordings %}
+                    <tr>
+                        <td style="color: var(--text-muted); font-weight: 600;">{{ forloop.counter }}</td>
+                        <td style="font-weight: 700; color: var(--navy-900);">
+                            <span style="display: inline-flex; align-items: center; gap: 6px;">
+                                <span class="avatar" style="width: 28px; height: 28px; font-size: 0.75rem;">
+                                    {{ rec.telecaller_name|slice:":1"|upper }}
+                                </span>
+                                {{ rec.telecaller_name }}
+                            </span>
+                        </td>
+                        <td>
+                            <div style="font-weight: 700; color: var(--navy-900);">
+                                {{ rec.candidate_name|default:"Candidate" }}
+                            </div>
+                            <div style="font-size: 0.825rem; color: var(--indigo-600); font-weight: 600;">
+                                <i class="fa-solid fa-phone me-1"></i> {{ rec.phone_number }}
+                            </div>
+                        </td>
+                        <td>
+                            {% if rec.call_type == 'OUTGOING' %}
+                                <span class="badge-status badge-info" style="font-size: 0.75rem; font-weight: 700;">
+                                    <i class="fa-solid fa-arrow-up-right me-1"></i> Outgoing
+                                </span>
+                            {% elif rec.call_type == 'INCOMING' %}
+                                <span class="badge-status badge-success" style="font-size: 0.75rem; font-weight: 700;">
+                                    <i class="fa-solid fa-arrow-down-left me-1"></i> Incoming
+                                </span>
+                            {% else %}
+                                <span class="badge-status badge-warning" style="font-size: 0.75rem; font-weight: 700;">
+                                    <i class="fa-solid fa-phone-slash me-1"></i> Missed
+                                </span>
+                            {% endif %}
+                        </td>
+                        <td style="font-weight: 700; color: var(--navy-800); font-size: 0.88rem;">
+                            <i class="fa-solid fa-stopwatch me-1" style="color: var(--text-muted);"></i>
+                            {% widthratio rec.duration_seconds 60 1 %}m {{ rec.duration_seconds|add:"-0" }}s
+                        </td>
+                        <td style="font-size: 0.825rem; color: var(--text-secondary);">
+                            {{ rec.call_timestamp|date:"M d, Y" }}
+                            <div style="color: var(--text-muted); font-size: 0.75rem;">{{ rec.call_timestamp|date:"h:i A" }}</div>
+                        </td>
+                        <td>
+                            {% if rec.audio_file %}
+                                <div class="lmt-audio-player">
+                                    <audio controls preload="none">
+                                        <source src="{{ rec.audio_file.url }}" type="audio/mpeg">
+                                        <source src="{{ rec.audio_file.url }}" type="audio/mp4">
+                                        <source src="{{ rec.audio_file.url }}" type="audio/wav">
+                                        Your browser does not support the audio element.
+                                    </audio>
+                                    <a href="{{ rec.audio_file.url }}" download class="btn-lmt btn-secondary-glass" style="padding: 0.25rem 0.5rem; font-size: 0.75rem;" title="Download Recording">
+                                        <i class="fa-solid fa-download"></i>
+                                    </a>
+                                </div>
+                            {% else %}
+                                <span style="color: var(--text-muted); font-size: 0.8rem;">No Audio</span>
+                            {% endif %}
+                        </td>
+                        {% if is_admin %}
+                            <td style="text-align: right;">
+                                <form method="POST" action="{% url 'delete_call_recording' pk=rec.id %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this call recording?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="btn-lmt btn-danger-soft" style="padding: 0.3rem 0.6rem; font-size: 0.8rem;" title="Delete Recording">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </button>
+                                </form>
+                            </td>
+                        {% endif %}
+                    </tr>
+                {% empty %}
+                    <tr>
+                        <td colspan="8" style="text-align: center; padding: 3.5rem; color: var(--text-muted);">
+                            <i class="fa-solid fa-headset" style="font-size: 2.5rem; margin-bottom: 1rem; display: block; color: var(--text-light);"></i>
+                            No call recordings synced yet.
+                            <div style="font-size: 0.85rem; margin-top: 0.5rem; color: var(--text-secondary);">
+                                Telecaller Android phones will automatically upload call audio files to <code>/api/upload-call-recording/</code>.
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

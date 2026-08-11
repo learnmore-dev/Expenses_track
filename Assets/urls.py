@@ -43,4 +43,7 @@ urlpatterns = [
     path('delete-user/<int:pk>/', views.delete_user_account, name='delete_user_account'),
     path('roles/', views.manage_roles, name='manage_roles'),
     path('roles/delete/<int:pk>/', views.delete_role, name='delete_role'),
+    path('api/upload-call-recording/', views.upload_call_recording_api, name='upload_call_recording_api'),
+    path('call-recordings/', views.call_recordings_hub, name='call_recordings_hub'),
+    path('call-recordings/delete/<int:pk>/', views.delete_call_recording, name='delete_call_recording'),
 ]

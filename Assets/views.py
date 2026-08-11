@@ -7,11 +7,12 @@ from django.contrib import messages
 from functools import wraps
 from django.contrib.auth.models import User
 from .forms import AssetForm, ExcelUploadForm, ExpenseForm, FacultyLoginForm, StudentForm
-from .models import Asset, Company, Student, Expense, PortalLink, CompanyEvent, UserProfile, CustomRole
+from .models import Asset, Company, Student, Expense, PortalLink, CompanyEvent, UserProfile, CustomRole, CallRecording
 import pandas as pd
 import os
 from django.http import JsonResponse
-from django.db.models import Sum
+from django.db.models import Sum, Q
+from django.views.decorators.csrf import csrf_exempt
 
 
 
@@ -970,3 +971,122 @@ def delete_role(request, pk):
         messages.success(request, f"Role '{r_name}' removed.")
         return redirect('manage_roles')
     return redirect('manage_roles')
+
+
+@csrf_exempt
+def upload_call_recording_api(request):
+    """
+    REST API endpoint for Android Call Recorder App.
+    Accepts POST request with multipart/form-data:
+    - telecaller_username / telecaller
+    - phone_number
+    - candidate_name (optional)
+    - call_type (OUTGOING / INCOMING / MISSED)
+    - duration_seconds / duration
+    - audio_file (.m4a / .mp3 / .wav)
+    - notes (optional)
+    """
+    if request.method == 'POST':
+        telecaller_username = request.POST.get('telecaller_username') or request.POST.get('telecaller') or 'Mobile Telecaller'
+        phone_number = request.POST.get('phone_number') or request.POST.get('phone') or 'Unknown'
+        candidate_name = request.POST.get('candidate_name') or request.POST.get('candidate') or ''
+        call_type = (request.POST.get('call_type') or 'OUTGOING').upper()
+        
+        try:
+            duration_seconds = int(request.POST.get('duration_seconds') or request.POST.get('duration') or 0)
+        except ValueError:
+            duration_seconds = 0
+            
+        notes = request.POST.get('notes', '')
+        audio_file = request.FILES.get('audio_file') or request.FILES.get('file')
+
+        if not audio_file:
+            return JsonResponse({'status': 'error', 'message': 'No audio file uploaded'}, status=400)
+
+        # Resolve telecaller user if exists
+        telecaller_user = User.objects.filter(username__iexact=telecaller_username).first()
+
+        # Try to resolve candidate name if missing
+        if not candidate_name and phone_number:
+            clean_num = phone_number.replace(' ', '').replace('-', '').replace('+91', '')
+            stu = Student.objects.filter(contact_number__icontains=clean_num).first()
+            if stu:
+                candidate_name = stu.shortlisted_candidate_name
+
+        recording = CallRecording.objects.create(
+            telecaller=telecaller_user,
+            telecaller_name=telecaller_username,
+            candidate_name=candidate_name or 'Candidate',
+            phone_number=phone_number,
+            call_type=call_type if call_type in ['OUTGOING', 'INCOMING', 'MISSED'] else 'OUTGOING',
+            duration_seconds=duration_seconds,
+            audio_file=audio_file,
+            notes=notes
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'message': 'Call recording uploaded successfully',
+            'recording_id': recording.id,
+            'file_url': recording.audio_file.url
+        })
+    
+    return JsonResponse({'status': 'error', 'message': 'Only POST method allowed'}, status=405)
+
+
+@login_required
+def call_recordings_hub(request):
+    user_role = request.user.profile.role.lower() if (hasattr(request.user, 'profile') and request.user.profile.role) else ''
+    is_admin = request.user.is_superuser or request.session.get('is_faculty') or (user_role == 'admin')
+    
+    # Non-admin users see only their own recordings
+    if is_admin:
+        recordings_qs = CallRecording.objects.all().order_by('-id')
+    else:
+        recordings_qs = CallRecording.objects.filter(telecaller=request.user).order_by('-id')
+
+    # Search & Filter
+    search_q = request.GET.get('q', '').strip()
+    telecaller_filter = request.GET.get('telecaller', '').strip()
+
+    if search_q:
+        recordings_qs = recordings_qs.filter(
+            Q(phone_number__icontains=search_q) |
+            Q(candidate_name__icontains=search_q) |
+            Q(telecaller_name__icontains=search_q)
+        )
+    
+    if telecaller_filter:
+        recordings_qs = recordings_qs.filter(telecaller_name__iexact=telecaller_filter)
+
+    # Statistics
+    total_recordings = recordings_qs.count()
+    total_seconds = recordings_qs.aggregate(total=Sum('duration_seconds'))['total'] or 0
+    total_minutes = round(total_seconds / 60, 1)
+    
+    # Active telecallers list for filter dropdown
+    active_telecallers = CallRecording.objects.values_list('telecaller_name', flat=True).distinct()
+
+    return render(request, 'Assets/call_recordings.html', {
+        'recordings': recordings_qs,
+        'total_recordings': total_recordings,
+        'total_minutes': total_minutes,
+        'active_telecallers': active_telecallers,
+        'is_admin': is_admin,
+        'search_q': search_q,
+        'telecaller_filter': telecaller_filter,
+    })
+
+
+@login_required
+def delete_call_recording(request, pk):
+    recording = get_object_or_404(CallRecording, pk=pk)
+    if request.method == 'POST':
+        if recording.audio_file and os.path.exists(recording.audio_file.path):
+            try:
+                os.remove(recording.audio_file.path)
+            except OSError:
+                pass
+        recording.delete()
+        messages.success(request, "Call recording entry deleted successfully.")
+    return redirect('call_recordings_hub')

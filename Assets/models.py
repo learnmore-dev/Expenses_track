@@ -192,3 +192,24 @@ class CompanyEvent(models.Model):
     def __str__(self):
         return self.title
 
+
+class CallRecording(models.Model):
+    CALL_TYPES = [
+        ('OUTGOING', 'Outgoing'),
+        ('INCOMING', 'Incoming'),
+        ('MISSED', 'Missed'),
+    ]
+
+    telecaller = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='call_recordings')
+    telecaller_name = models.CharField(max_length=100)
+    candidate_name = models.CharField(max_length=100, blank=True, null=True)
+    phone_number = models.CharField(max_length=20)
+    call_type = models.CharField(max_length=10, choices=CALL_TYPES, default='OUTGOING')
+    duration_seconds = models.IntegerField(default=0)
+    audio_file = models.FileField(upload_to='call_recordings/%Y/%m/%d/')
+    call_timestamp = models.DateTimeField(auto_now_add=True)
+    notes = models.TextField(blank=True, null=True)
+
+    def __str__(self):
+        return f"{self.telecaller_name} -> {self.phone_number} ({self.duration_seconds}s)"
+
