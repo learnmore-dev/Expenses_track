@@ -59,21 +59,21 @@ class AudioRecorderService : Service() {
 
             audioFile = File(dir, "rec_${System.currentTimeMillis()}.mp3")
 
-            // Enable in-call audio boost
+            // Auto-enable Speakerphone audio routing for 100% in-call voice capture
             try {
                 if (audioManager != null) {
                     audioManager!!.mode = AudioManager.MODE_IN_CALL
+                    audioManager!!.isSpeakerphoneOn = true
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
 
-            // Audio sources prioritized for Android 10/11/12/13/14 compatibility
             val audioSources = intArrayOf(
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,   // 6: Raw High Sensitivity Mic
-                MediaRecorder.AudioSource.VOICE_COMMUNICATION, // 7: Dual-way Voice
-                MediaRecorder.AudioSource.MIC,                 // 1: Direct Mic
-                MediaRecorder.AudioSource.CAMCORDER,           // 5: Unfiltered Video Mic
+                MediaRecorder.AudioSource.MIC,
+                MediaRecorder.AudioSource.VOICE_COMMUNICATION,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,
+                MediaRecorder.AudioSource.CAMCORDER,
                 MediaRecorder.AudioSource.DEFAULT
             )
 
@@ -112,6 +112,7 @@ class AudioRecorderService : Service() {
         } finally {
             try {
                 if (audioManager != null) {
+                    audioManager!!.isSpeakerphoneOn = false
                     audioManager!!.mode = AudioManager.MODE_NORMAL
                 }
             } catch (e: Exception) {
