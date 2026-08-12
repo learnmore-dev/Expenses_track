@@ -22,7 +22,7 @@ object UploaderWorker {
 
         val client = OkHttpClient()
 
-        val mimeType = if (file.name.endsWith(".mp3")) "audio/mpeg" else "audio/mp4"
+        val mimeType = if (file.name.endsWith(".wav")) "audio/wav" else "audio/mpeg"
 
         val requestBody = MultipartBody.Builder()
             .setType(MultipartBody.FORM)
@@ -49,7 +49,7 @@ object UploaderWorker {
             override fun onResponse(call: Call, response: Response) {
                 if (response.isSuccessful) {
                     println("Upload Success: ${response.body?.string()}")
-                    file.delete() // Delete temporary audio file after successful sync
+                    file.delete()
                 }
             }
         })
