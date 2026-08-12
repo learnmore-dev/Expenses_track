@@ -18,7 +18,6 @@ class AudioRecorderService : Service() {
     private var mediaRecorder: MediaRecorder? = null
     private var audioFile: File? = null
     private var audioManager: AudioManager? = null
-    private var originalAudioMode: Int = AudioManager.MODE_NORMAL
 
     companion object {
         private const val CHANNEL_ID = "LMT_CALL_SYNC_CHANNEL"
@@ -58,24 +57,23 @@ class AudioRecorderService : Service() {
             val dir = File(externalCacheDir, "recordings")
             if (!dir.exists()) dir.mkdirs()
 
-            // Standard MP3 extension for WhatsApp and VLC compatibility
             audioFile = File(dir, "rec_${System.currentTimeMillis()}.mp3")
 
-            // Enable in-call audio routing in AudioManager to bypass hardware mic lock
+            // Enable in-call audio boost
             try {
                 if (audioManager != null) {
-                    originalAudioMode = audioManager!!.mode
                     audioManager!!.mode = AudioManager.MODE_IN_CALL
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
 
+            // Audio sources prioritized for Android 10/11/12/13/14 compatibility
             val audioSources = intArrayOf(
-                MediaRecorder.AudioSource.VOICE_COMMUNICATION, // Dual-way VoIP / Call stream
-                MediaRecorder.AudioSource.MIC,
-                MediaRecorder.AudioSource.VOICE_RECOGNITION,
-                MediaRecorder.AudioSource.CAMCORDER,
+                MediaRecorder.AudioSource.VOICE_RECOGNITION,   // 6: Raw High Sensitivity Mic
+                MediaRecorder.AudioSource.VOICE_COMMUNICATION, // 7: Dual-way Voice
+                MediaRecorder.AudioSource.MIC,                 // 1: Direct Mic
+                MediaRecorder.AudioSource.CAMCORDER,           // 5: Unfiltered Video Mic
                 MediaRecorder.AudioSource.DEFAULT
             )
 
@@ -114,7 +112,7 @@ class AudioRecorderService : Service() {
         } finally {
             try {
                 if (audioManager != null) {
-                    audioManager!!.mode = originalAudioMode
+                    audioManager!!.mode = AudioManager.MODE_NORMAL
                 }
             } catch (e: Exception) {
                 e.printStackTrace()

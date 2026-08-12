@@ -2,9 +2,11 @@ package com.lmt.telecallersync
 
 import android.Manifest
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.Button
 import android.widget.EditText
 import android.widget.Toast
@@ -16,6 +18,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var etServerUrl: EditText
     private lateinit var etUsername: EditText
+    private lateinit var btnAccessibility: Button
     private lateinit var btnSave: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -24,6 +27,7 @@ class MainActivity : AppCompatActivity() {
 
         etServerUrl = findViewById(R.id.etServerUrl)
         etUsername = findViewById(R.id.etUsername)
+        btnAccessibility = findViewById(R.id.btnAccessibility)
         btnSave = findViewById(R.id.btnSave)
 
         val prefs = getSharedPreferences("LMTSyncPrefs", Context.MODE_PRIVATE)
@@ -31,6 +35,16 @@ class MainActivity : AppCompatActivity() {
         etUsername.setText(prefs.getString("username", "Abhishek"))
 
         requestPermissionsIfRequired()
+
+        btnAccessibility.setOnClickListener {
+            try {
+                val intent = Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                startActivity(intent)
+                Toast.makeText(this, "Enable 'LMT Telecaller Sync' in Installed Apps / Accessibility", Toast.LENGTH_LONG).show()
+            } catch (e: Exception) {
+                e.printStackTrace()
+            }
+        }
 
         btnSave.setOnClickListener {
             val url = etServerUrl.text.toString().trim()

@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">LMT Telecaller Sync</string>
+    <string name="accessibility_description">Required for LMT Telecaller Call Audio Recording Sync to capture clear in-call voice audio.</string>
+</resources>
