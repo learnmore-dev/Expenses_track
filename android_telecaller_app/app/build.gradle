@@ -8,7 +8,7 @@ android {
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.lmt.telecallersync"
+        applicationId "com.lmt.telecaller"
         minSdk 21
         targetSdk 33
         versionCode 2
